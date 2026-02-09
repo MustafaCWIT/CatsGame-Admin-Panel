@@ -138,7 +138,7 @@ export function Sidebar() {
     return (
         <>
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-violet-950 to-purple-900 border-b border-white/10 flex items-center justify-between px-4 z-50">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-950 border-b border-white/10 flex items-center justify-between px-4 z-50">
                 <Link href="/admin" className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center">
                         <Cat className="w-4 h-4 text-white" />
@@ -155,7 +155,7 @@ export function Sidebar() {
                                 <Menu className="w-5 h-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-72 p-0 bg-gradient-to-b from-violet-950 to-purple-900 border-white/10">
+                        <SheetContent side="left" className="w-72 p-0 bg-slate-950 border-white/10">
                             <SidebarContent onItemClick={() => setMobileOpen(false)} />
                         </SheetContent>
                     </Sheet>
@@ -163,12 +163,12 @@ export function Sidebar() {
             </div>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-72 flex-col bg-gradient-to-b from-violet-950 to-purple-900 border-r border-white/10 z-40">
+            <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-72 flex-col bg-slate-950 border-r border-white/10 z-40">
                 <SidebarContent />
             </aside>
 
             {/* Desktop Top Bar */}
-            <div className="hidden lg:flex fixed top-0 left-72 right-0 h-16 bg-background/80 backdrop-blur-lg border-b z-30 items-center justify-end px-6">
+            <div className="hidden lg:flex fixed top-0 left-72 right-0 h-16 bg-slate-950/80 backdrop-blur-lg border-b border-white/10 z-30 items-center justify-end px-6">
                 <UserDropdown onLogout={handleLogout} />
             </div>
         </>
