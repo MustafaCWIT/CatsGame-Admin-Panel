@@ -1,0 +1,218 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { DashboardStats, Activity } from '@/types/database';
+import { StatsCard } from '@/components/admin/StatsCard';
+import {
+    ChartContainer,
+    UserGrowthChart,
+    XPDistributionChart,
+    TopUsersChart,
+    VideoTrendsChart,
+} from '@/components/admin/AnalyticsCharts';
+import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+    Users,
+    UserCheck,
+    Sparkles,
+    Video,
+    TrendingUp,
+    Calendar,
+    CalendarDays,
+    CalendarCheck,
+} from 'lucide-react';
+
+interface AnalyticsData {
+    userGrowth: { date: string; count: number }[];
+    xpDistribution: { range: string; count: number }[];
+    topUsers: { name: string; xp: number }[];
+    videoTrends: { date: string; count: number }[];
+    activityTimeline: { date: string; count: number }[];
+    recentActivities: { userName: string; activity: Activity }[];
+}
+
+export default function AdminDashboard() {
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                // Fetch stats
+                const statsRes = await fetch('/api/admin/stats');
+                if (!statsRes.ok) throw new Error('Failed to fetch stats');
+                const statsData = await statsRes.json();
+                setStats(statsData);
+
+                // Fetch analytics
+                const analyticsRes = await fetch('/api/admin/analytics?days=30');
+                if (!analyticsRes.ok) throw new Error('Failed to fetch analytics');
+                const analyticsData = await analyticsRes.json();
+                setAnalytics(analyticsData);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return <DashboardSkeleton />;
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-red-400 text-lg mb-2">Error loading dashboard</p>
+                    <p className="text-white/50">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Page Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+                <p className="text-white/60 mt-1">
+                    Welcome back! Here&apos;s an overview of your Tap to Purr statistics.
+                </p>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <StatsCard
+                    title="Total Users"
+                    value={stats?.totalUsers || 0}
+                    icon={Users}
+                    variant="gradient"
+                    trend={{ value: 12, label: 'from last month' }}
+                />
+                <StatsCard
+                    title="Active Users"
+                    value={stats?.activeUsers || 0}
+                    description="Last 30 days"
+                    icon={UserCheck}
+                />
+                <StatsCard
+                    title="Total XP"
+                    value={formatNumber(stats?.totalXP || 0)}
+                    icon={Sparkles}
+                />
+                <StatsCard
+                    title="Total Videos"
+                    value={stats?.totalVideos || 0}
+                    icon={Video}
+                />
+            </div>
+
+            {/* Secondary Stats */}
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <StatsCard
+                    title="Average XP"
+                    value={formatNumber(stats?.avgXP || 0)}
+                    description="Per user"
+                    icon={TrendingUp}
+                />
+                <StatsCard
+                    title="New This Month"
+                    value={stats?.newUsersThisMonth || 0}
+                    icon={Calendar}
+                />
+                <StatsCard
+                    title="New This Week"
+                    value={stats?.newUsersThisWeek || 0}
+                    icon={CalendarDays}
+                />
+                <StatsCard
+                    title="New Today"
+                    value={stats?.newUsersToday || 0}
+                    icon={CalendarCheck}
+                />
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid gap-6 lg:grid-cols-2">
+                <ChartContainer
+                    title="User Growth"
+                    description="New user registrations over the last 30 days"
+                >
+                    <UserGrowthChart data={analytics?.userGrowth || []} />
+                </ChartContainer>
+
+                <ChartContainer
+                    title="XP Distribution"
+                    description="Distribution of users by XP range"
+                >
+                    <XPDistributionChart data={analytics?.xpDistribution || []} />
+                </ChartContainer>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+                <ChartContainer
+                    title="Top Users by XP"
+                    description="Leaderboard of top 10 users"
+                >
+                    <TopUsersChart data={analytics?.topUsers || []} />
+                </ChartContainer>
+
+                <ChartContainer
+                    title="Video Upload Trends"
+                    description="Video uploads over the last 30 days"
+                >
+                    <VideoTrendsChart data={analytics?.videoTrends || []} />
+                </ChartContainer>
+            </div>
+
+            {/* Recent Activity */}
+            <RecentActivityFeed activities={analytics?.recentActivities || []} />
+        </div>
+    );
+}
+
+function DashboardSkeleton() {
+    return (
+        <div className="space-y-8">
+            <div>
+                <Skeleton className="h-9 w-48 bg-white/10" />
+                <Skeleton className="h-5 w-96 mt-2 bg-white/10" />
+            </div>
+
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
+                ))}
+            </div>
+
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
+                ))}
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+                <Skeleton className="h-[380px] rounded-2xl bg-white/10" />
+                <Skeleton className="h-[380px] rounded-2xl bg-white/10" />
+            </div>
+        </div>
+    );
+}
+
+function formatNumber(num: number): string {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+}
