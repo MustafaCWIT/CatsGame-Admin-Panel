@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
                                 <div key={h} className="text-center text-[10px] text-white/40 font-bold">{h}</div>
                             ))}
                             {[...Array(5)].map((_, i) => (
-                                <>
+                                <Fragment key={i}>
                                     <div className="text-center text-[10px] text-white/40 py-2">Jan {i + 1}</div>
                                     {[...Array(6)].map((_, j) => (
                                         <div
@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
                                             {Math.floor(80 - (j * 12) - (Math.random() * 5))}%
                                         </div>
                                     ))}
-                                </>
+                                </Fragment>
                             ))}
                         </div>
                     </ChartContainer>
