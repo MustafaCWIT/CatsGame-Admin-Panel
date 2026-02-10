@@ -21,7 +21,6 @@ import {
     Cat,
     LayoutDashboard,
     Users,
-    BarChart3,
     Settings,
     LogOut,
     Menu,
@@ -44,11 +43,6 @@ const navItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
-    },
-    {
-        title: 'Analytics',
-        href: '/admin/analytics',
-        icon: BarChart3,
     },
     {
         title: 'Settings',
@@ -91,13 +85,13 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                                 className={cn(
                                     'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ring-0 focus-visible:ring-offset-0',
                                     isActive
-                                        ? 'bg-gradient-to-r from-pink-500/20 to-violet-500/20 text-white border border-pink-500/30'
+                                        ? 'text-white'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 )}
                             >
                                 <Icon className={cn(
                                     'w-5 h-5',
-                                    isActive ? 'text-pink-400' : 'text-white/40'
+                                    isActive ? 'text-white' : 'text-white/40'
                                 )} />
                                 {item.title}
                             </Link>
@@ -107,7 +101,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
             </ScrollArea>
 
             {/* Footer */}
-            <div className="border-t border-white/10 p-4">
+            {/* <div className="border-t border-white/10 p-4">
                 <div className="rounded-xl bg-gradient-to-r from-pink-500/10 to-violet-500/10 p-4 border border-pink-500/20">
                     <p className="text-white/80 text-sm font-medium mb-1">Need help?</p>
                     <p className="text-white/50 text-xs mb-3">Check our documentation for guides and tutorials.</p>
@@ -119,7 +113,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                         View Docs
                     </Button>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }
