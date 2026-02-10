@@ -89,11 +89,13 @@ export default function UsersPage() {
         fetchUsers();
     }, [fetchUsers]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setSearch(searchInput);
-        setPage(1);
-    };
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setSearch(searchInput.trim());
+            setPage(1);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [searchInput]);
 
     const handleSort = (column: string) => {
         if (sortBy === column) {
@@ -188,7 +190,7 @@ export default function UsersPage() {
                         setEditingUser(undefined);
                         setFormOpen(true);
                     }}
-                    className="bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 text-white shadow-lg shadow-pink-500/30"
+                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/30"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Add User
@@ -197,7 +199,7 @@ export default function UsersPage() {
 
             {/* Search and Filters */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+                <div className="flex-1 flex gap-2">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                         <Input
@@ -207,10 +209,7 @@ export default function UsersPage() {
                             className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"
                         />
                     </div>
-                    <Button type="submit" variant="secondary">
-                        Search
-                    </Button>
-                </form>
+                </div>
 
                 <div className="flex items-center gap-2">
                     <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -295,31 +294,7 @@ export default function UsersPage() {
             </div>
 
             {/* Active Filters Display */}
-            {hasActiveFilters && (
-                <div className="flex flex-wrap gap-2">
-                    {search && (
-                        <FilterBadge
-                            label={`Search: ${search}`}
-                            onRemove={() => {
-                                setSearch('');
-                                setSearchInput('');
-                            }}
-                        />
-                    )}
-                    {xpMin && (
-                        <FilterBadge label={`XP ≥ ${xpMin}`} onRemove={() => setXpMin('')} />
-                    )}
-                    {xpMax && (
-                        <FilterBadge label={`XP ≤ ${xpMax}`} onRemove={() => setXpMax('')} />
-                    )}
-                    {videosMin && (
-                        <FilterBadge label={`Videos ≥ ${videosMin}`} onRemove={() => setVideosMin('')} />
-                    )}
-                    {videosMax && (
-                        <FilterBadge label={`Videos ≤ ${videosMax}`} onRemove={() => setVideosMax('')} />
-                    )}
-                </div>
-            )}
+
 
             {/* Users Table */}
             <UserTable

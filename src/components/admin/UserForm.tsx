@@ -15,7 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserFormProps {
@@ -37,6 +37,8 @@ interface FormData {
 
 export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps) {
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const isEditing = !!user;
 
     const {
@@ -179,18 +181,32 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password *</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="Enter password"
-                                    {...register('password', {
-                                        required: !isEditing ? 'Password is required' : false,
-                                        minLength: {
-                                            value: 8,
-                                            message: 'Password must be at least 8 characters',
-                                        },
-                                    })}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Enter password"
+                                        className="pr-10"
+                                        {...register('password', {
+                                            required: !isEditing ? 'Password is required' : false,
+                                            minLength: {
+                                                value: 8,
+                                                message: 'Password must be at least 8 characters',
+                                            },
+                                        })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                                 {errors.password && (
                                     <p className="text-sm text-red-500">{errors.password.message}</p>
                                 )}
@@ -198,16 +214,30 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
 
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    placeholder="Confirm password"
-                                    {...register('confirmPassword', {
-                                        required: !isEditing ? 'Please confirm password' : false,
-                                        validate: (value) =>
-                                            !password || value === password || 'Passwords do not match',
-                                    })}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        placeholder="Confirm password"
+                                        className="pr-10"
+                                        {...register('confirmPassword', {
+                                            required: !isEditing ? 'Please confirm password' : false,
+                                            validate: (value) =>
+                                                !password || value === password || 'Passwords do not match',
+                                        })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                                 {errors.confirmPassword && (
                                     <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
                                 )}
@@ -215,27 +245,29 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                         </div>
                     )}
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="total_xp">Total XP</Label>
-                            <Input
-                                id="total_xp"
-                                type="number"
-                                min="0"
-                                {...register('total_xp', { valueAsNumber: true })}
-                            />
-                        </div>
+                    {isEditing && (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="total_xp">Total XP</Label>
+                                <Input
+                                    id="total_xp"
+                                    type="number"
+                                    min="0"
+                                    {...register('total_xp', { valueAsNumber: true })}
+                                />
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="videos_count">Videos Count</Label>
-                            <Input
-                                id="videos_count"
-                                type="number"
-                                min="0"
-                                {...register('videos_count', { valueAsNumber: true })}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="videos_count">Videos Count</Label>
+                                <Input
+                                    id="videos_count"
+                                    type="number"
+                                    min="0"
+                                    {...register('videos_count', { valueAsNumber: true })}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <DialogFooter>
                         <Button

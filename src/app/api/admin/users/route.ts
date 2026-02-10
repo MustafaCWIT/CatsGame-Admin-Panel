@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         // Create profile
         const { data: newProfile, error: newProfileError } = await adminClient
             .from('profiles')
-            .insert({
+            .upsert({
                 id: authData.user.id,
                 full_name,
                 email,
@@ -172,6 +172,8 @@ export async function POST(request: NextRequest) {
                 total_xp,
                 videos_count,
                 activities: [],
+                updated_at: new Date().toISOString(),
+                role: 'user', // Ensure default role is set
             })
             .select()
             .single();
@@ -179,8 +181,11 @@ export async function POST(request: NextRequest) {
         if (newProfileError) {
             // Rollback - delete auth user if profile creation fails
             await adminClient.auth.admin.deleteUser(authData.user.id);
-            console.error('Error creating profile:', newProfileError);
-            return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+            console.error('Error creating/upserting profile:', newProfileError);
+            return NextResponse.json(
+                { error: `Failed to create user profile: ${newProfileError.message}` },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json({
