@@ -237,13 +237,17 @@ export default function UsersPage() {
                                             type="number"
                                             placeholder="Min"
                                             value={xpMin}
-                                            onChange={(e) => setXpMin(e.target.value)}
+                                            onChange={(e) => setXpMin(e.target.value === '' ? '' : e.target.value)}
+                                            min="0"
+                                            className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                         />
                                         <Input
                                             type="number"
                                             placeholder="Max"
                                             value={xpMax}
-                                            onChange={(e) => setXpMax(e.target.value)}
+                                            onChange={(e) => setXpMax(e.target.value === '' ? '' : e.target.value)}
+                                            min="0"
+                                            className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                         />
                                     </div>
                                 </div>
@@ -255,13 +259,17 @@ export default function UsersPage() {
                                             type="number"
                                             placeholder="Min"
                                             value={videosMin}
-                                            onChange={(e) => setVideosMin(e.target.value)}
+                                            onChange={(e) => setVideosMin(e.target.value === '' ? '' : e.target.value)}
+                                            min="0"
+                                            className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                         />
                                         <Input
                                             type="number"
                                             placeholder="Max"
                                             value={videosMax}
-                                            onChange={(e) => setVideosMax(e.target.value)}
+                                            onChange={(e) => setVideosMax(e.target.value === '' ? '' : e.target.value)}
+                                            min="0"
+                                            className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                         />
                                     </div>
                                 </div>

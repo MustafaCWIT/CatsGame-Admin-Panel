@@ -375,25 +375,27 @@ export function UserTable({
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-48">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuSeparator />
+                                            <DropdownMenuContent align="end" className="w-48 bg-black border-white/10">
+                                                <DropdownMenuLabel className="text-white">Actions</DropdownMenuLabel>
+                                                <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem
                                                     onClick={() => router.push(`/admin/users/${user.id}`)}
+                                                    className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     View Details
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                                                    className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Pencil className="w-4 h-4 mr-2" />
                                                     Edit User
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
+                                                <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem
                                                     onClick={() => handleDeleteClick(user)}
-                                                    className="text-red-500 focus:text-red-500"
+                                                    className="text-red-500 focus:text-red-500 focus:bg-white/10"
                                                 >
                                                     <Trash2 className="w-4 h-4 mr-2" />
                                                     Delete User
