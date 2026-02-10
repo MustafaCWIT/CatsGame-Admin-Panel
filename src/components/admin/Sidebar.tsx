@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import logoImage from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -18,7 +20,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    Cat,
     LayoutDashboard,
     Users,
     Settings,
@@ -59,8 +60,14 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
             {/* Logo */}
             <div className="flex h-16 items-center border-b border-white/10 px-6">
                 <Link href="/admin" className="flex items-center gap-3" onClick={onItemClick}>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                        <Cat className="w-5 h-5 text-white" />
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden">
+                        <Image
+                            src={logoImage}
+                            alt="Logo"
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-contain"
+                        />
                     </div>
                     <div>
                         <span className="font-bold text-white text-lg">Tap to Purr</span>
@@ -134,8 +141,14 @@ export function Sidebar() {
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-950 border-b border-white/10 flex items-center justify-between px-4 z-50">
                 <Link href="/admin" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center">
-                        <Cat className="w-4 h-4 text-white" />
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+                        <Image
+                            src={logoImage}
+                            alt="Logo"
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-contain"
+                        />
                     </div>
                     <span className="font-bold text-white">Tap to Purr</span>
                 </Link>
