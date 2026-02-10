@@ -196,17 +196,17 @@ function UserDropdown({ onLogout }: { onLogout: () => void }) {
                     <ChevronDown className="w-4 h-4 text-white/50" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+            <DropdownMenuContent align="end" className="w-56 bg-black border-white/10">
+                <DropdownMenuLabel className="text-white">My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white">
                     <Link href="/admin/settings">
                         <Settings className="w-4 h-4 mr-2" />
                         Settings
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout} className="text-red-500 focus:text-red-500">
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem onClick={onLogout} className="text-red-500 focus:text-red-500 focus:bg-white/10">
                     <LogOut className="w-4 h-4 mr-2" />
                     Log out
                 </DropdownMenuItem>
