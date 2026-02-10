@@ -8,6 +8,7 @@ export interface Profile {
   total_xp: number;
   videos_count: number;
   activities: Activity[] | null;
+  role?: string;
   updated_at: string;
   created_at?: string;
 }
@@ -63,6 +64,7 @@ export interface CreateUserPayload {
   password: string;
   total_xp?: number;
   videos_count?: number;
+  role?: string;
 }
 
 export interface UpdateUserPayload {
@@ -72,6 +74,7 @@ export interface UpdateUserPayload {
   total_xp?: number;
   videos_count?: number;
   activities?: Activity[];
+  role?: string;
 }
 
 // Level calculation utility

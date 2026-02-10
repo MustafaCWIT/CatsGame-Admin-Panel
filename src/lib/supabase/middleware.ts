@@ -56,7 +56,7 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // If user is authenticated, check if they're an admin
+    // If user is authenticated, check if they have admin panel access
     if (user && isAdminRoute) {
         const { data: profile } = await supabase
             .from('profiles')
@@ -64,8 +64,10 @@ export async function updateSession(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'admin') {
-            // Not an admin, redirect to login with error
+        // Allow access for admin, manager, and readonly roles
+        const allowedRoles = ['admin', 'manager', 'readonly'];
+        if (!profile?.role || !allowedRoles.includes(profile.role)) {
+            // Not authorized, redirect to login with error
             const url = request.nextUrl.clone();
             url.pathname = '/login';
             url.searchParams.set('error', 'unauthorized');

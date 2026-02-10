@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
         // Get request body
         const body = await request.json();
-        const { full_name, email, phone, password, total_xp = 0, videos_count = 0 } = body;
+        const { full_name, email, phone, password, total_xp = 0, videos_count = 0, role = 'user' } = body;
 
         // Validate required fields
         if (!full_name || !email || !password) {
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
                 videos_count,
                 activities: [],
                 updated_at: new Date().toISOString(),
-                role: 'user', // Ensure default role is set
+                role: role || 'user', // Set role from request or default to 'user'
             })
             .select()
             .single();

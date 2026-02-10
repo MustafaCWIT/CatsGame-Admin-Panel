@@ -57,6 +57,7 @@ interface Column {
 const columns: Column[] = [
     { key: 'full_name', label: 'User', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
+    { key: 'role', label: 'Role', sortable: true },
     { key: 'total_xp', label: 'XP', sortable: true },
     { key: 'level', label: 'Level', sortable: false },
     { key: 'videos_count', label: 'Videos', sortable: true },
@@ -160,12 +161,108 @@ export function UserTable({
         return 'bg-gradient-to-r from-slate-500 to-slate-600';
     };
 
+    const getRoleColor = (role?: string) => {
+        switch (role) {
+            case 'admin':
+                return 'bg-pink-500';
+            case 'manager':
+                return 'bg-purple-500';
+            case 'readonly':
+                return 'bg-blue-500';
+            default:
+                return 'bg-slate-500';
+        }
+    };
+
+    const getRoleLabel = (role?: string) => {
+        switch (role) {
+            case 'admin':
+                return 'Admin';
+            case 'manager':
+                return 'Manager';
+            case 'readonly':
+                return 'Read Only';
+            default:
+                return 'User';
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) return;
+
+        if (!confirm(`Are you sure you want to delete ${selectedUsers.length} user(s)? This action cannot be undone.`)) {
+            return;
+        }
+
+        setDeleting(true);
+        try {
+            const deletePromises = selectedUsers.map(userId =>
+                fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+            );
+
+            const results = await Promise.allSettled(deletePromises);
+            const failed = results.filter(r => r.status === 'rejected').length;
+
+            if (failed === 0) {
+                toast.success(`${selectedUsers.length} user(s) deleted successfully`);
+                setSelectedUsers([]);
+                onRefresh();
+            } else {
+                toast.error(`Failed to delete ${failed} user(s)`);
+            }
+        } catch (error) {
+            toast.error('Failed to delete users');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     if (loading) {
         return <TableSkeleton />;
     }
 
     return (
         <>
+            {/* Bulk Actions Toolbar */}
+            {selectedUsers.length > 0 && (
+                <div className="flex items-center justify-between p-4 rounded-xl border border-pink-500/30 bg-pink-500/10 mb-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-white font-medium">
+                            {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedUsers([])}
+                            className="border-white/20 text-white/80 hover:bg-white/10"
+                        >
+                            Clear Selection
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleBulkDelete}
+                            disabled={deleting}
+                            className="bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
+                        >
+                            {deleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete Selected
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5">
                 <Table>
                     <TableHeader>
@@ -197,7 +294,7 @@ export function UserTable({
                     <TableBody>
                         {users.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-32 text-center text-white/40">
+                                <TableCell colSpan={9} className="h-32 text-center text-white/40">
                                     No users found
                                 </TableCell>
                             </TableRow>
@@ -238,6 +335,16 @@ export function UserTable({
                                             <Mail className="w-4 h-4 text-white/40" />
                                             {user.email || '-'}
                                         </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            className={cn(
+                                                'text-white border-0',
+                                                getRoleColor((user as any)?.role)
+                                            )}
+                                        >
+                                            {getRoleLabel((user as any)?.role)}
+                                        </Badge>
                                     </TableCell>
                                     <TableCell>
                                         <span className="font-semibold text-white">

@@ -17,6 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface UserFormProps {
     user?: UserWithLevel;
@@ -33,6 +40,7 @@ interface FormData {
     confirmPassword: string;
     total_xp: number;
     videos_count: number;
+    role: string;
 }
 
 export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps) {
@@ -47,6 +55,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
         formState: { errors },
         reset,
         watch,
+        setValue,
     } = useForm<FormData>({
         defaultValues: {
             full_name: user?.full_name || '',
@@ -56,6 +65,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
             confirmPassword: '',
             total_xp: user?.total_xp || 0,
             videos_count: user?.videos_count || 0,
+            role: (user as any)?.role || 'user',
         },
     });
 
@@ -73,6 +83,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                     phone: data.phone || undefined,
                     total_xp: data.total_xp,
                     videos_count: data.videos_count,
+                    role: data.role,
                 };
 
                 const response = await fetch(`/api/admin/users/${user.id}`, {
@@ -96,6 +107,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                     password: data.password,
                     total_xp: data.total_xp,
                     videos_count: data.videos_count,
+                    role: data.role || 'user',
                 };
 
                 const response = await fetch('/api/admin/users', {
@@ -175,6 +187,27 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                             placeholder="Enter phone number"
                             {...register('phone')}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="role">Role *</Label>
+                        <Select
+                            value={watch('role')}
+                            onValueChange={(value) => setValue('role', value)}
+                        >
+                            <SelectTrigger id="role">
+                                <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="manager">Manager</SelectItem>
+                                <SelectItem value="readonly">Read Only</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.role && (
+                            <p className="text-sm text-red-500">{errors.role.message}</p>
+                        )}
                     </div>
 
                     {!isEditing && (

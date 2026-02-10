@@ -82,7 +82,7 @@ export async function PATCH(
 
         // Get request body
         const body = await request.json();
-        const { full_name, email, phone, total_xp, videos_count, activities } = body;
+        const { full_name, email, phone, total_xp, videos_count, activities, role } = body;
 
         // Build update object
         const updateData: Record<string, unknown> = {};
@@ -92,6 +92,7 @@ export async function PATCH(
         if (total_xp !== undefined) updateData.total_xp = total_xp;
         if (videos_count !== undefined) updateData.videos_count = videos_count;
         if (activities !== undefined) updateData.activities = activities;
+        if (role !== undefined) updateData.role = role;
         updateData.updated_at = new Date().toISOString();
 
         const adminClient = createAdminClient();
