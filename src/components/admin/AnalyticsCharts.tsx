@@ -125,6 +125,7 @@ export function XPDistributionChart({ data }: XPDistributionChartProps) {
                     tickLine={false}
                 />
                 <Tooltip
+                    cursor={{ fill: 'transparent' }}
                     contentStyle={{
                         backgroundColor: 'rgba(0,0,0,0.8)',
                         border: '1px solid rgba(255,255,255,0.1)',
@@ -170,6 +171,7 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
                     width={80}
                 />
                 <Tooltip
+                    cursor={{ fill: 'transparent' }}
                     contentStyle={{
                         backgroundColor: 'rgba(0,0,0,0.8)',
                         border: '1px solid rgba(255,255,255,0.1)',

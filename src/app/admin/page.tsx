@@ -9,7 +9,6 @@ import {
     UserGrowthChart,
     XPDistributionChart,
     TopUsersChart,
-    VideoTrendsChart,
 } from '@/components/admin/AnalyticsCharts';
 import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,10 +17,6 @@ import {
     UserCheck,
     Sparkles,
     Video,
-    TrendingUp,
-    Calendar,
-    CalendarDays,
-    CalendarCheck,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -94,8 +89,8 @@ export default function AdminDashboard() {
                     title="Total Users"
                     value={stats?.totalUsers || 0}
                     icon={Users}
-                    variant="gradient"
-                    trend={{ value: 12, label: 'from last month' }}
+                // variant="gradient"
+                // trend={{ value: 12, label: 'from last month' }}
                 />
                 <StatsCard
                     title="Active Users"
@@ -115,30 +110,7 @@ export default function AdminDashboard() {
                 />
             </div>
 
-            {/* Secondary Stats */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                <StatsCard
-                    title="Average XP"
-                    value={formatNumber(stats?.avgXP || 0)}
-                    description="Per user"
-                    icon={TrendingUp}
-                />
-                <StatsCard
-                    title="New This Month"
-                    value={stats?.newUsersThisMonth || 0}
-                    icon={Calendar}
-                />
-                <StatsCard
-                    title="New This Week"
-                    value={stats?.newUsersThisWeek || 0}
-                    icon={CalendarDays}
-                />
-                <StatsCard
-                    title="New Today"
-                    value={stats?.newUsersToday || 0}
-                    icon={CalendarCheck}
-                />
-            </div>
+
 
             {/* Charts Section */}
             <div className="grid gap-6 lg:grid-cols-2">
@@ -157,19 +129,12 @@ export default function AdminDashboard() {
                 </ChartContainer>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-1">
                 <ChartContainer
                     title="Top Users by XP"
                     description="Leaderboard of top 10 users"
                 >
                     <TopUsersChart data={analytics?.topUsers || []} />
-                </ChartContainer>
-
-                <ChartContainer
-                    title="Video Upload Trends"
-                    description="Video uploads over the last 30 days"
-                >
-                    <VideoTrendsChart data={analytics?.videoTrends || []} />
                 </ChartContainer>
             </div>
 
@@ -193,14 +158,9 @@ function DashboardSkeleton() {
                 ))}
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
-                ))}
-            </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                <Skeleton className="h-[380px] rounded-2xl bg-white/10" />
+
+            <div className="grid gap-6 lg:grid-cols-1">
                 <Skeleton className="h-[380px] rounded-2xl bg-white/10" />
             </div>
         </div>

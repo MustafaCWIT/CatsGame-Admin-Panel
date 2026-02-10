@@ -89,7 +89,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                                 href={item.href}
                                 onClick={onItemClick}
                                 className={cn(
-                                    'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                                    'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ring-0 focus-visible:ring-offset-0',
                                     isActive
                                         ? 'bg-gradient-to-r from-pink-500/20 to-violet-500/20 text-white border border-pink-500/30'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
