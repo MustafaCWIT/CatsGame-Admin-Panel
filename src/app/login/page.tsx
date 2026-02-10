@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cat, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import logo from '@/assets/logo.png';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -67,7 +69,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-black p-4">
             {/* Animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
@@ -77,13 +79,18 @@ export default function LoginPage() {
 
             <Card className="w-full max-w-md relative backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
                 <CardHeader className="text-center pb-2">
-                    <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                        <Cat className="w-8 h-8 text-white" />
+                    <div className="mx-auto mb-0 flex items-center justify-center w-32 relative h-32">
+                        <Image
+                            src={logo}
+                            alt="Tap to Purr Logo"
+                            fill
+                            className="object-contain"
+                            priority
+                            quality={100}
+                        />
                     </div>
                     <CardTitle className="text-2xl font-bold text-white">Tap to Purr</CardTitle>
-                    <CardDescription className="text-white/70">
-                        Admin Panel Login
-                    </CardDescription>
+
                 </CardHeader>
 
                 <CardContent>
@@ -126,7 +133,7 @@ export default function LoginPage() {
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 text-white font-semibold shadow-lg shadow-pink-500/30 transition-all duration-200 hover:shadow-pink-500/40 hover:scale-[1.02]"
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-lg shadow-purple-500/30 transition-all duration-200 hover:shadow-purple-500/40 hover:scale-[1.02]"
                         >
                             {loading ? (
                                 <>
@@ -139,11 +146,7 @@ export default function LoginPage() {
                         </Button>
                     </form>
 
-                    <div className="mt-6 text-center">
-                        <p className="text-white/50 text-sm">
-                            Contact your administrator for access credentials
-                        </p>
-                    </div>
+
                 </CardContent>
             </Card>
         </div>
