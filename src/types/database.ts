@@ -9,6 +9,8 @@ export interface Profile {
   videos_count: number;
   activities: Activity[] | null;
   role?: string;
+  game_time_spent?: number;
+  video_url?: string | null;
   updated_at: string;
   created_at?: string;
 }
@@ -43,6 +45,7 @@ export interface DashboardStats {
   activeUsers: number;
   totalXP: number;
   totalVideos: number;
+  totalGameTime: number;
   avgXP: number;
   newUsersThisMonth: number;
   newUsersThisWeek: number;
@@ -53,6 +56,7 @@ export interface AnalyticsData {
   userGrowth: { date: string; count: number }[];
   xpDistribution: { range: string; count: number }[];
   topUsers: { name: string; xp: number }[];
+  topUsersByGameTime: { name: string; gameTime: number }[];
   videoTrends: { date: string; count: number }[];
   activityTimeline: { date: string; count: number }[];
 }

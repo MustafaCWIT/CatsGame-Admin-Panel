@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         // Get all profiles for stats calculation
         const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
-            .select('id, total_xp, videos_count, updated_at, created_at');
+            .select('id, total_xp, videos_count, game_time_spent, updated_at, created_at');
 
         if (profilesError) {
             console.error('Error fetching profiles:', profilesError);
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         const totalUsers = allProfiles.length;
         const totalXP = allProfiles.reduce((sum, p) => sum + (p.total_xp || 0), 0);
         const totalVideos = allProfiles.reduce((sum, p) => sum + (p.videos_count || 0), 0);
+        const totalGameTime = allProfiles.reduce((sum, p) => sum + (p.game_time_spent || 0), 0);
         const avgXP = totalUsers > 0 ? Math.round(totalXP / totalUsers) : 0;
 
         // Active users (updated in last 30 days)
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
             activeUsers,
             totalXP,
             totalVideos,
+            totalGameTime,
             avgXP,
             newUsersThisMonth,
             newUsersThisWeek,

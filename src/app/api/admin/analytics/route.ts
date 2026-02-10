@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         // Get all profiles with activities
         const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
-            .select('id, full_name, total_xp, videos_count, activities, created_at');
+            .select('id, full_name, total_xp, videos_count, game_time_spent, activities, created_at');
 
         if (profilesError) {
             console.error('Error fetching profiles:', profilesError);
@@ -85,6 +85,14 @@ export async function GET(request: NextRequest) {
             .map(p => ({
                 name: p.full_name || 'Unknown',
                 xp: p.total_xp || 0,
+            }));
+
+        // All Users by Game Time
+        const topUsersByGameTime = allProfiles
+            .sort((a, b) => (b.game_time_spent || 0) - (a.game_time_spent || 0))
+            .map(p => ({
+                name: p.full_name || 'Unknown',
+                gameTime: p.game_time_spent || 0,
             }));
 
         // Video Trends - Simulated as we don't have daily video data
@@ -143,6 +151,7 @@ export async function GET(request: NextRequest) {
             userGrowth,
             xpDistribution,
             topUsers,
+            topUsersByGameTime,
             videoTrends,
             activityTimeline,
             recentActivities: sortedActivities,
