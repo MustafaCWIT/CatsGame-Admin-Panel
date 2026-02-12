@@ -35,8 +35,18 @@ import {
     Video,
     Activity as ActivityIcon,
     Clock,
+    Play,
+    ExternalLink,
 } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
 
 export default function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -44,6 +54,10 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const [user, setUser] = useState<UserWithLevel | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+    const [videoUrls, setVideoUrls] = useState<{ original: string; signed: string }[]>([]);
+    const [loadingVideos, setLoadingVideos] = useState(false);
 
     useEffect(() => {
         async function fetchUser() {
@@ -61,6 +75,80 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
         fetchUser();
     }, [id]);
+
+    // Fetch public URLs for videos (videos are now publicly accessible)
+    useEffect(() => {
+        async function fetchVideoUrls() {
+            if (!user?.video_url) {
+                setVideoUrls([]);
+                return;
+            }
+
+            setLoadingVideos(true);
+            try {
+                const supabase = createClient();
+                const parsedUrls = parseVideoUrls(user.video_url);
+                
+                const videoUrlPromises = parsedUrls.map(async (url) => {
+                    // Check if it's already a full URL (http/https)
+                    if (url.startsWith('http://') || url.startsWith('https://')) {
+                        return { original: url, signed: url };
+                    }
+
+                    // If it's a Supabase Storage path, get public URL
+                    // Path format might be: userId/filename.mp4 or Videos/userId/filename.mp4
+                    let storagePath = url;
+                    
+                    // Remove 'Videos/' prefix if present
+                    if (storagePath.startsWith('Videos/')) {
+                        storagePath = storagePath.replace('Videos/', '');
+                    }
+
+                    // Get public URL (videos are now publicly accessible)
+                    const { data: publicData } = supabase.storage
+                        .from('Videos')
+                        .getPublicUrl(storagePath);
+
+                    return { original: url, signed: publicData.publicUrl };
+                });
+
+                const resolvedUrls = await Promise.all(videoUrlPromises);
+                setVideoUrls(resolvedUrls);
+            } catch (err) {
+                console.error('Error fetching video URLs:', err);
+                toast.error('Failed to load video URLs');
+            } finally {
+                setLoadingVideos(false);
+            }
+        }
+
+        if (user) {
+            fetchVideoUrls();
+        }
+    }, [user?.video_url]);
+
+    // Parse video URLs - handle single URL, JSON array, or comma-separated
+    const parseVideoUrls = (videoUrl: string | null | undefined): string[] => {
+        if (!videoUrl) return [];
+        
+        try {
+            // Try parsing as JSON first
+            const parsed = JSON.parse(videoUrl);
+            if (Array.isArray(parsed)) {
+                return parsed.filter((url: any) => typeof url === 'string' && url.trim() !== '');
+            }
+        } catch {
+            // Not JSON, continue
+        }
+        
+        // Check if it's comma-separated
+        if (videoUrl.includes(',')) {
+            return videoUrl.split(',').map(url => url.trim()).filter(url => url !== '');
+        }
+        
+        // Single URL
+        return [videoUrl.trim()].filter(url => url !== '');
+    };
 
     const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete this user?')) return;
@@ -100,6 +188,11 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
             date: format(new Date(a.date), 'MMM d'),
             xp: parseInt(a.text.match(/\d+/)?.[0] || '0')
         })) || [];
+
+    const handleVideoClick = (signedUrl: string) => {
+        setSelectedVideo(signedUrl);
+        setVideoDialogOpen(true);
+    };
 
     return (
         <div className="space-y-8">
@@ -243,6 +336,51 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                         </ResponsiveContainer>
                     </ChartContainer>
 
+                    {/* Videos Section */}
+                    {loadingVideos ? (
+                        <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-4 w-4 rounded-full bg-white/10 animate-pulse" />
+                                <p className="text-white/60 text-sm">Loading videos...</p>
+                            </div>
+                        </div>
+                    ) : videoUrls.length > 0 ? (
+                        <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-white">Uploaded Videos</h3>
+                                <Badge variant="outline" className="border-white/10 text-white/40">
+                                    {videoUrls.length} Video{videoUrls.length !== 1 ? 's' : ''}
+                                </Badge>
+                            </div>
+                            <div className="p-6">
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    {videoUrls.map((video, index) => (
+                                        <div
+                                            key={index}
+                                            className="group relative aspect-video rounded-lg overflow-hidden bg-black/20 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+                                            onClick={() => handleVideoClick(video.signed)}
+                                        >
+                                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-violet-500/20">
+                                                <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                                                    <Play className="w-8 h-8 text-white" fill="white" />
+                                                </div>
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <p className="text-xs text-white/80 font-medium truncate">
+                                                    Video {index + 1}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : user.video_url ? (
+                        <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+                            <p className="text-white/60 text-sm">No videos found or unable to load video URLs.</p>
+                        </div>
+                    ) : null}
+
                     <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
                         <div className="p-6 border-b border-white/10 flex items-center justify-between">
                             <h3 className="text-lg font-semibold text-white">Full Activity History</h3>
@@ -274,6 +412,61 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                     </div>
                 </div>
             </div>
+
+            {/* Video Dialog */}
+            <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+                <DialogContent className="max-w-4xl bg-black border-white/10">
+                    <DialogHeader>
+                        <DialogTitle className="text-white">Video Player</DialogTitle>
+                        <DialogDescription className="text-white/60">
+                            Viewing uploaded video
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedVideo && (
+                        <div className="space-y-4">
+                            <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                {selectedVideo ? (
+                                    <video
+                                        src={selectedVideo}
+                                        controls
+                                        className="w-full h-full"
+                                        onError={(e) => {
+                                            console.error('Video load error:', e);
+                                            toast.error('Failed to load video. The video may be unavailable or the URL may be invalid.');
+                                        }}
+                                        onLoadStart={() => {
+                                            // Video is starting to load
+                                        }}
+                                    >
+                                        Your browser does not support the video tag.
+                                    </video>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-white/60">
+                                        <p>No video selected</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => window.open(selectedVideo, '_blank')}
+                                    className="border-white/10 text-white/80 hover:bg-white/10"
+                                >
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    Open in New Tab
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setVideoDialogOpen(false)}
+                                    className="text-white/60 hover:text-white"
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

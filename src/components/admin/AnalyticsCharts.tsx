@@ -185,6 +185,92 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
     );
 }
 
+interface GameTimePerUserChartProps {
+    data: { name: string; gameTime: number }[];
+}
+
+export function GameTimePerUserChart({ data }: GameTimePerUserChartProps) {
+    // Format game time for display (convert seconds to hours/minutes)
+    const formatGameTime = (seconds: number): string => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+    };
+
+    // Format tooltip value
+    const CustomTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const gameTime = payload[0].value;
+            return (
+                <div
+                    style={{
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        color: 'white',
+                    }}
+                >
+                    <p style={{ margin: 0 }}>{`${payload[0].payload.name}`}</p>
+                    <p style={{ margin: 0, color: 'hsl(45, 90%, 60%)' }}>
+                        {formatGameTime(gameTime)} ({gameTime.toLocaleString()}s)
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    // Format Y-axis labels (truncate long names)
+    const formatName = (name: string) => {
+        if (name.length > 15) {
+            return name.substring(0, 12) + '...';
+        }
+        return name;
+    };
+
+    return (
+        <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+                data={data}
+                layout="vertical"
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
+                <XAxis
+                    type="number"
+                    stroke="rgba(255,255,255,0.4)"
+                    fontSize={12}
+                    tickLine={false}
+                    tickFormatter={(value) => {
+                        if (value === 0) return '';
+                        const hours = Math.floor(value / 3600);
+                        const minutes = Math.floor((value % 3600) / 60);
+                        if (hours > 0) {
+                            return `${hours}h`;
+                        }
+                        return `${minutes}m`;
+                    }}
+                />
+                <YAxis
+                    dataKey="name"
+                    type="category"
+                    stroke="rgba(255,255,255,0.4)"
+                    fontSize={12}
+                    tickLine={false}
+                    width={100}
+                    tickFormatter={formatName}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                <Bar dataKey="gameTime" fill="hsl(45, 90%, 60%)" radius={[0, 4, 4, 0]} />
+            </BarChart>
+        </ResponsiveContainer>
+    );
+}
+
 interface VideoTrendsChartProps {
     data: { date: string; count: number }[];
 }

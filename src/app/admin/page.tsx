@@ -9,13 +9,13 @@ import {
     UserGrowthChart,
     XPDistributionChart,
     TopUsersChart,
+    GameTimePerUserChart,
 } from '@/components/admin/AnalyticsCharts';
 import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Users,
-    UserCheck,
-    Sparkles,
+    Clock,
     Video,
 } from 'lucide-react';
 
@@ -23,6 +23,7 @@ interface AnalyticsData {
     userGrowth: { date: string; count: number }[];
     xpDistribution: { range: string; count: number }[];
     topUsers: { name: string; xp: number }[];
+    topUsersByGameTime: { name: string; gameTime: number }[];
     videoTrends: { date: string; count: number }[];
     activityTimeline: { date: string; count: number }[];
     recentActivities: { userName: string; activity: Activity }[];
@@ -84,29 +85,22 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <StatsCard
                     title="Total Users"
                     value={stats?.totalUsers || 0}
                     icon={Users}
-                // variant="gradient"
-                // trend={{ value: 12, label: 'from last month' }}
-                />
-                <StatsCard
-                    title="Active Users"
-                    value={stats?.activeUsers || 0}
-                    description="Last 30 days"
-                    icon={UserCheck}
-                />
-                <StatsCard
-                    title="Total XP"
-                    value={formatNumber(stats?.totalXP || 0)}
-                    icon={Sparkles}
                 />
                 <StatsCard
                     title="Total Videos"
                     value={stats?.totalVideos || 0}
                     icon={Video}
+                />
+                <StatsCard
+                    title="Total Game Time"
+                    value={formatGameTime(stats?.totalGameTime || 0)}
+                    icon={Clock}
+                    description="All users combined"
                 />
             </div>
 
@@ -129,12 +123,18 @@ export default function AdminDashboard() {
                 </ChartContainer>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-1">
+            <div className="grid gap-6 lg:grid-cols-2">
                 <ChartContainer
                     title="Top Users by XP"
                     description="Leaderboard of top 10 users"
                 >
                     <TopUsersChart data={analytics?.topUsers || []} />
+                </ChartContainer>
+                <ChartContainer
+                    title="Game Time per User"
+                    description="Top 10 users by game time spent"
+                >
+                    <GameTimePerUserChart data={analytics?.topUsersByGameTime || []} />
                 </ChartContainer>
             </div>
 
@@ -152,8 +152,8 @@ function DashboardSkeleton() {
                 <Skeleton className="h-5 w-96 mt-2 bg-white/10" />
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
                     <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
                 ))}
             </div>
@@ -175,4 +175,30 @@ function formatNumber(num: number): string {
         return (num / 1000).toFixed(1) + 'K';
     }
     return num.toString();
+}
+
+function formatGameTime(seconds: number): string {
+    if (seconds < 60) {
+        return `${seconds}s`;
+    }
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+        if (minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+        return `${hours}h`;
+    }
+    
+    if (minutes > 0) {
+        if (remainingSeconds > 0) {
+            return `${minutes}m ${remainingSeconds}s`;
+        }
+        return `${minutes}m`;
+    }
+    
+    return `${remainingSeconds}s`;
 }
