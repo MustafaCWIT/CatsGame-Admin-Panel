@@ -26,7 +26,10 @@ import {
     LogOut,
     Menu,
     ChevronDown,
+    BarChart3,
+    Activity,
 } from 'lucide-react';
+import { trackEvent, AdminEvents } from '@/lib/clarity';
 
 interface NavItem {
     title: string;
@@ -44,6 +47,16 @@ const navItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Activities',
+        href: '/admin/activities',
+        icon: Activity,
+    },
+    {
+        title: 'Clarity Analytics',
+        href: '/admin/clarity',
+        icon: BarChart3,
     },
     {
         title: 'Settings',
@@ -88,7 +101,10 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                onClick={onItemClick}
+                                onClick={() => {
+                                    trackEvent(AdminEvents.SIDEBAR_NAVIGATED);
+                                    onItemClick?.();
+                                }}
                                 className={cn(
                                     'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ring-0 focus-visible:ring-offset-0',
                                     isActive

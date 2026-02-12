@@ -47,6 +47,8 @@ import {
     Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminTracking } from '@/hooks/useClarity';
+import { AdminEvents } from '@/lib/clarity';
 
 interface Column {
     key: string;
@@ -83,6 +85,7 @@ export function UserTable({
     onRefresh,
 }: UserTableProps) {
     const router = useRouter();
+    const { trackUserAction } = useAdminTracking();
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<UserWithLevel | null>(null);
@@ -122,6 +125,7 @@ export function UserTable({
                 throw new Error('Failed to delete user');
             }
 
+            trackUserAction(AdminEvents.USER_DELETED, userToDelete.id);
             toast.success('User deleted successfully');
             onRefresh();
         } catch (error) {
@@ -379,14 +383,20 @@ export function UserTable({
                                                 <DropdownMenuLabel className="text-white">Actions</DropdownMenuLabel>
                                                 <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem
-                                                    onClick={() => router.push(`/admin/users/${user.id}`)}
+                                                    onClick={() => {
+                                                        trackUserAction(AdminEvents.USER_DETAILS_VIEWED, user.id);
+                                                        router.push(`/admin/users/${user.id}`);
+                                                    }}
                                                     className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     View Details
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                                                    onClick={() => {
+                                                        trackUserAction(AdminEvents.USER_EDIT_STARTED, user.id);
+                                                        router.push(`/admin/users/${user.id}/edit`);
+                                                    }}
                                                     className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Pencil className="w-4 h-4 mr-2" />

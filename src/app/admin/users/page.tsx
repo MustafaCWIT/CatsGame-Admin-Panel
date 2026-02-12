@@ -31,8 +31,11 @@ import {
     ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminTracking } from '@/hooks/useClarity';
+import { AdminEvents } from '@/lib/clarity';
 
 export default function UsersPage() {
+    const { trackSearch, trackFilter, trackUserAction } = useAdminTracking();
     const [users, setUsers] = useState<UserWithLevel[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -91,11 +94,15 @@ export default function UsersPage() {
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            setSearch(searchInput.trim());
+            const trimmedSearch = searchInput.trim();
+            setSearch(trimmedSearch);
             setPage(1);
+            if (trimmedSearch) {
+                trackSearch(trimmedSearch, total);
+            }
         }, 500);
         return () => clearTimeout(timeoutId);
-    }, [searchInput]);
+    }, [searchInput, trackSearch, total]);
 
     const handleSort = (column: string) => {
         if (sortBy === column) {
@@ -110,6 +117,12 @@ export default function UsersPage() {
     const handleApplyFilters = () => {
         setPage(1);
         setFiltersOpen(false);
+        if (xpMin || xpMax) {
+            trackFilter('xp_range', `${xpMin || '0'}-${xpMax || '∞'}`);
+        }
+        if (videosMin || videosMax) {
+            trackFilter('videos_range', `${videosMin || '0'}-${videosMax || '∞'}`);
+        }
         fetchUsers();
     };
 
@@ -190,6 +203,7 @@ export default function UsersPage() {
                     onClick={() => {
                         setEditingUser(undefined);
                         setFormOpen(true);
+                        trackUserAction(AdminEvents.USER_EDIT_STARTED);
                     }}
                     className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/30"
                 >

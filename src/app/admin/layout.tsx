@@ -1,5 +1,8 @@
+'use client';
+
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Toaster } from '@/components/ui/sonner';
+import { ClarityTracking } from '@/components/admin/ClarityTracking';
 
 export default function AdminLayout({
     children,
@@ -8,6 +11,7 @@ export default function AdminLayout({
 }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+            <ClarityTracking />
             <Sidebar />
 
             {/* Main content area */}

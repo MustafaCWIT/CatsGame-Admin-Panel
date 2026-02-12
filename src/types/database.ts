@@ -81,6 +81,55 @@ export interface UpdateUserPayload {
   role?: string;
 }
 
+// User Activities types (from user_activities table)
+export interface UserActivity {
+  id: string;
+  user_id: string;
+  activity_type: string;
+  activity_details: Record<string, any> | null;
+  created_at: string;
+  // Joined fields from profiles
+  user_name?: string | null;
+  user_email?: string | null;
+  user_total_xp?: number;
+  user_videos_count?: number;
+}
+
+// Activity Analytics types
+export interface ActivityMetrics {
+  totalActivities: number;
+  totalUsers: number;
+  activeSessionsToday: number;
+  gameSessions: number;
+  videoUploads: number;
+  conversionRate: number;
+  averageGameScore: number;
+  averageSessionDuration: number;
+}
+
+export interface UploadFunnelMetrics {
+  clickedUpload: number;
+  selectedVideo: number;
+  selectedReceipt: number;
+  filledStoreName: number;
+  submitted: number;
+  completed: number;
+}
+
+export interface GamePerformanceMetrics {
+  averageScore: number;
+  averageSessionTime: number;
+  totalGames: number;
+  completionRate: number;
+  averageScoreByLevel: { level: number; avgScore: number; count: number }[];
+}
+
+export interface NavigationMetrics {
+  screenTransitions: { from: string; to: string; count: number }[];
+  timeOnScreen: { screen: string; avgTime: number; totalViews: number }[];
+  buttonClicks: { button: string; count: number; sources: Record<string, number> }[];
+}
+
 // Level calculation utility
 export function getLevelForXP(xp: number): number {
   // 100 XP per level

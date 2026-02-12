@@ -12,11 +12,15 @@ import {
     GameTimePerUserChart,
 } from '@/components/admin/AnalyticsCharts';
 import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
+import { RealTimeActivityFeed } from '@/components/admin/RealTimeActivityFeed';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Users,
     Clock,
     Video,
+    Activity,
+    TrendingUp,
+    Gamepad2,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -29,9 +33,21 @@ interface AnalyticsData {
     recentActivities: { userName: string; activity: Activity }[];
 }
 
+interface ActivityMetrics {
+    totalActivities: number;
+    totalUsers: number;
+    activeSessionsToday: number;
+    gameSessions: number;
+    videoUploads: number;
+    conversionRate: number;
+    averageGameScore: number;
+    averageSessionDuration: number;
+}
+
 export default function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+    const [activityMetrics, setActivityMetrics] = useState<ActivityMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +65,13 @@ export default function AdminDashboard() {
                 if (!analyticsRes.ok) throw new Error('Failed to fetch analytics');
                 const analyticsData = await analyticsRes.json();
                 setAnalytics(analyticsData);
+
+                // Fetch activity metrics
+                const metricsRes = await fetch('/api/admin/activities/metrics');
+                if (metricsRes.ok) {
+                    const metricsData = await metricsRes.json();
+                    setActivityMetrics(metricsData);
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load dashboard');
             } finally {
@@ -85,7 +108,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard
                     title="Total Users"
                     value={stats?.totalUsers || 0}
@@ -102,7 +125,40 @@ export default function AdminDashboard() {
                     icon={Clock}
                     description="All users combined"
                 />
+                <StatsCard
+                    title="Total Activities"
+                    value={activityMetrics?.totalActivities.toLocaleString() || '0'}
+                    icon={Activity}
+                    description="All tracked activities"
+                />
             </div>
+
+            {/* Activity Metrics Grid */}
+            {activityMetrics && (
+                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatsCard
+                        title="Active Sessions Today"
+                        value={activityMetrics.activeSessionsToday}
+                        icon={Activity}
+                    />
+                    <StatsCard
+                        title="Game Sessions"
+                        value={activityMetrics.gameSessions.toLocaleString()}
+                        icon={Gamepad2}
+                    />
+                    <StatsCard
+                        title="Video Uploads"
+                        value={activityMetrics.videoUploads.toLocaleString()}
+                        icon={Video}
+                    />
+                    <StatsCard
+                        title="Conversion Rate"
+                        value={`${activityMetrics.conversionRate}%`}
+                        icon={TrendingUp}
+                        description="Upload completion rate"
+                    />
+                </div>
+            )}
 
 
 
@@ -140,6 +196,9 @@ export default function AdminDashboard() {
 
             {/* Recent Activity */}
             <RecentActivityFeed activities={analytics?.recentActivities || []} />
+
+            {/* Real-time Activity Feed */}
+            <RealTimeActivityFeed maxItems={20} refreshInterval={5000} />
         </div>
     );
 }
