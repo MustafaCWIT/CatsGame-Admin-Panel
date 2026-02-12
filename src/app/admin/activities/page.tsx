@@ -290,17 +290,12 @@ export default function ActivitiesPage() {
                                                     {format(new Date(activity.created_at), 'MMM d, yyyy HH:mm:ss')}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div>
-                                                        <Link
-                                                            href={`/admin/users/${activity.user_id}`}
-                                                            className="text-white hover:text-blue-400 transition-colors"
-                                                        >
-                                                            {activity.user_name || activity.user_email || 'Unknown'}
-                                                        </Link>
-                                                        <p className="text-xs text-white/40 font-mono">
-                                                            {activity.user_id.slice(0, 8)}...
-                                                        </p>
-                                                    </div>
+                                                    <Link
+                                                        href={`/admin/users/${activity.user_id}`}
+                                                        className="text-white hover:text-blue-400 transition-colors"
+                                                    >
+                                                        {activity.user_name || activity.user_email || 'Unknown'}
+                                                    </Link>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge
@@ -331,11 +326,20 @@ export default function ActivitiesPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 asChild
+                                                                title="View Clarity Session Replay"
                                                             >
                                                                 <a
                                                                     href={getClarityLink(activity.user_id)!}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
+                                                                    onClick={(e) => {
+                                                                        // Validate link before opening
+                                                                        const link = getClarityLink(activity.user_id);
+                                                                        if (!link || !clarityProjectId) {
+                                                                            e.preventDefault();
+                                                                            toast.error('Clarity project not configured');
+                                                                        }
+                                                                    }}
                                                                 >
                                                                     <ExternalLink className="w-4 h-4" />
                                                                 </a>
@@ -418,10 +422,6 @@ export default function ActivitiesPage() {
                                     <h4 className="text-white font-medium mb-2">Basic Info</h4>
                                     <div className="bg-white/5 p-3 rounded-lg space-y-2 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-white/60">ID:</span>
-                                            <span className="text-white font-mono">{selectedActivity.id}</span>
-                                        </div>
-                                        <div className="flex justify-between">
                                             <span className="text-white/60">Type:</span>
                                             <Badge className={getActivityColor(selectedActivity.activity_type)}>
                                                 {selectedActivity.activity_type}
@@ -432,15 +432,6 @@ export default function ActivitiesPage() {
                                             <span className="text-white">
                                                 {format(new Date(selectedActivity.created_at), 'PPpp')}
                                             </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/60">User ID:</span>
-                                            <Link
-                                                href={`/admin/users/${selectedActivity.user_id}`}
-                                                className="text-blue-400 hover:underline font-mono"
-                                            >
-                                                {selectedActivity.user_id}
-                                            </Link>
                                         </div>
                                     </div>
                                 </div>
