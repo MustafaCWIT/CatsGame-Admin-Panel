@@ -35,10 +35,10 @@ import {
     RefreshCw,
     Search,
     Filter,
-    ExternalLink,
     ChevronLeft,
     ChevronRight,
     Eye,
+    ExternalLink,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -76,8 +76,30 @@ export default function ActivitiesPage() {
     const [userId, setUserId] = useState<string>('');
     const [search, setSearchInput] = useState('');
     const [searchDebounced, setSearchDebounced] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    
+    // Set default date range to current month
+    const getCurrentMonthDates = () => {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        // Format as YYYY-MM-DD for date input
+        const formatDate = (date: Date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        return {
+            start: formatDate(firstDay),
+            end: formatDate(lastDay),
+        };
+    };
+    
+    const defaultDates = getCurrentMonthDates();
+    const [startDate, setStartDate] = useState(defaultDates.start);
+    const [endDate, setEndDate] = useState(defaultDates.end);
 
     // Selected activity for details
     const [selectedActivity, setSelectedActivity] = useState<UserActivity | null>(null);
@@ -244,43 +266,21 @@ export default function ActivitiesPage() {
                         </SelectContent>
                     </Select>
 
-                    <div className="relative">
-                        <Input
-                            type="date"
-                            placeholder="Start Date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-white/5 border-white/10 text-white pr-8"
-                        />
-                        {startDate && (
-                            <button
-                                onClick={() => setStartDate('')}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
-                                title="Clear start date"
-                            >
-                                ×
-                            </button>
-                        )}
-                    </div>
+                    <Input
+                        type="date"
+                        placeholder="Start Date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white"
+                    />
 
-                    <div className="relative">
-                        <Input
-                            type="date"
-                            placeholder="End Date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-white/5 border-white/10 text-white pr-8"
-                        />
-                        {endDate && (
-                            <button
-                                onClick={() => setEndDate('')}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
-                                title="Clear end date"
-                            >
-                                ×
-                            </button>
-                        )}
-                    </div>
+                    <Input
+                        type="date"
+                        placeholder="End Date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white"
+                    />
                 </div>
             </Card>
 
@@ -301,14 +301,13 @@ export default function ActivitiesPage() {
                                         <TableHead className="text-white/60">Timestamp</TableHead>
                                         <TableHead className="text-white/60">User</TableHead>
                                         <TableHead className="text-white/60">Activity Type</TableHead>
-                                        <TableHead className="text-white/60">Details</TableHead>
                                         <TableHead className="text-white/60">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {activities.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-32 text-center text-white/40">
+                                            <TableCell colSpan={4} className="h-32 text-center text-white/40">
                                                 No activities found
                                             </TableCell>
                                         </TableRow>
@@ -336,48 +335,20 @@ export default function ActivitiesPage() {
                                                         {activity.activity_type.replace(/_/g, ' ')}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-white/60 text-sm max-w-md truncate">
-                                                    {activity.activity_details
-                                                        ? JSON.stringify(activity.activity_details).substring(0, 50) + '...'
-                                                        : '-'}
-                                                </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setSelectedActivity(activity);
-                                                                setDetailsOpen(true);
-                                                            }}
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                        </Button>
-                                                        {getClarityLink(activity.user_id) && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                asChild
-                                                                title="View Clarity Session Replay"
-                                                            >
-                                                                <a
-                                                                    href={getClarityLink(activity.user_id)!}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    onClick={(e) => {
-                                                                        // Validate link before opening
-                                                                        const link = getClarityLink(activity.user_id);
-                                                                        if (!link || !clarityProjectId) {
-                                                                            e.preventDefault();
-                                                                            toast.error('Clarity project not configured');
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <ExternalLink className="w-4 h-4" />
-                                                                </a>
-                                                            </Button>
-                                                        )}
-                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setSelectedActivity(activity);
+                                                            setDetailsOpen(true);
+                                                        }}
+                                                        title="View Details"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -439,7 +410,13 @@ export default function ActivitiesPage() {
             </Card>
 
             {/* Activity Details Dialog */}
-            <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <Dialog open={detailsOpen} onOpenChange={(open) => {
+                setDetailsOpen(open);
+                if (!open) {
+                    // Clear selected activity when dialog closes
+                    setSelectedActivity(null);
+                }
+            }}>
                 <DialogContent className="max-w-2xl bg-black border-white/10">
                     <DialogHeader>
                         <DialogTitle className="text-white">Activity Details</DialogTitle>
@@ -447,7 +424,7 @@ export default function ActivitiesPage() {
                             Full details for this activity
                         </DialogDescription>
                     </DialogHeader>
-                    {selectedActivity && (
+                    {selectedActivity ? (
                         <ScrollArea className="max-h-[500px]">
                             <div className="space-y-4">
                                 <div>
@@ -509,6 +486,10 @@ export default function ActivitiesPage() {
                                 )}
                             </div>
                         </ScrollArea>
+                    ) : (
+                        <div className="p-4 text-center text-white/60">
+                            <p>Loading activity details...</p>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>
