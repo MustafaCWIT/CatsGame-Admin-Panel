@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         // Get all profiles (without the activities jsonb to keep it lightweight)
         const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
-            .select('id, full_name, total_xp, videos_count, game_time_spent, created_at');
+            .select('id, phone, total_xp, videos_count, game_time_spent, created_at');
 
         if (profilesError) {
             console.error('Error fetching profiles:', profilesError);
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             .sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0))
             .slice(0, 10)
             .map(p => ({
-                name: p.full_name || 'Unknown',
+                name: p.phone || 'Unknown',
                 xp: p.total_xp || 0,
             }));
 
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         const topUsersByGameTime = [...allProfiles]
             .sort((a, b) => (b.game_time_spent || 0) - (a.game_time_spent || 0))
             .map(p => ({
-                name: p.full_name || 'Unknown',
+                name: p.phone || 'Unknown',
                 gameTime: p.game_time_spent || 0,
             }));
 
@@ -151,12 +151,12 @@ export async function GET(request: NextRequest) {
                 const userIds = [...new Set(recentUserActivities.map(a => a.user_id))];
                 const { data: userProfiles } = await supabase
                     .from('profiles')
-                    .select('id, full_name')
+                    .select('id, phone')
                     .in('id', userIds);
 
                 const nameMap: Record<string, string> = {};
                 (userProfiles || []).forEach(p => {
-                    nameMap[p.id] = p.full_name || 'Unknown User';
+                    nameMap[p.id] = p.phone || 'Unknown User';
                 });
 
                 recentActivities = recentUserActivities.map(ua => {
