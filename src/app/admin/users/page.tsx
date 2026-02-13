@@ -31,8 +31,11 @@ import {
     ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminTracking } from '@/hooks/useClarity';
+import { AdminEvents } from '@/lib/clarity';
 
 export default function UsersPage() {
+    const { trackSearch, trackFilter, trackUserAction } = useAdminTracking();
     const [users, setUsers] = useState<UserWithLevel[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -91,11 +94,15 @@ export default function UsersPage() {
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            setSearch(searchInput.trim());
+            const trimmedSearch = searchInput.trim();
+            setSearch(trimmedSearch);
             setPage(1);
+            if (trimmedSearch) {
+                trackSearch(trimmedSearch, total);
+            }
         }, 500);
         return () => clearTimeout(timeoutId);
-    }, [searchInput]);
+    }, [searchInput, trackSearch, total]);
 
     const handleSort = (column: string) => {
         if (sortBy === column) {
@@ -110,6 +117,12 @@ export default function UsersPage() {
     const handleApplyFilters = () => {
         setPage(1);
         setFiltersOpen(false);
+        if (xpMin || xpMax) {
+            trackFilter('xp_range', `${xpMin || '0'}-${xpMax || '∞'}`);
+        }
+        if (videosMin || videosMax) {
+            trackFilter('videos_range', `${videosMin || '0'}-${videosMax || '∞'}`);
+        }
         fetchUsers();
     };
 
@@ -143,11 +156,8 @@ export default function UsersPage() {
             const data: PaginatedResponse<UserWithLevel> = await response.json();
 
             // Generate CSV
-            const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
+            const headers = ['Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
             const rows = data.data.map((user) => [
-                user.id,
-                user.full_name || '',
-                user.email || '',
                 user.phone || '',
                 (user as any)?.role || 'user',
                 user.total_xp || 0,
@@ -190,6 +200,7 @@ export default function UsersPage() {
                     onClick={() => {
                         setEditingUser(undefined);
                         setFormOpen(true);
+                        trackUserAction(AdminEvents.USER_EDIT_STARTED);
                     }}
                     className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/30"
                 >
@@ -204,7 +215,7 @@ export default function UsersPage() {
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                         <Input
-                            placeholder="Search by name, email, or phone..."
+                            placeholder="Search by phone number..."
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                             className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"

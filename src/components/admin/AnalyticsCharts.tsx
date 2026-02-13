@@ -153,7 +153,7 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
             <BarChart
                 data={data}
                 layout="vertical"
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
                 <XAxis
@@ -161,6 +161,8 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
                     stroke="rgba(255,255,255,0.4)"
                     fontSize={12}
                     tickLine={false}
+                    domain={[0, 'dataMax']}
+                    tickFormatter={(value: number) => value.toLocaleString()}
                 />
                 <YAxis
                     dataKey="name"
@@ -168,7 +170,7 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
                     stroke="rgba(255,255,255,0.4)"
                     fontSize={12}
                     tickLine={false}
-                    width={80}
+                    width={90}
                 />
                 <Tooltip
                     cursor={{ fill: 'transparent' }}
@@ -178,6 +180,7 @@ export function TopUsersChart({ data }: TopUsersChartProps) {
                         borderRadius: '8px',
                         color: 'white',
                     }}
+                    formatter={(value: number | undefined) => [value != null ? value.toLocaleString() : '0', 'XP']}
                 />
                 <Bar dataKey="xp" fill="hsl(330, 90%, 60%)" radius={[0, 4, 4, 0]} />
             </BarChart>

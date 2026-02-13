@@ -32,14 +32,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     MoreHorizontal,
     Eye,
     Pencil,
     Trash2,
-    Mail,
     Phone,
     ArrowUpDown,
     ArrowUp,
@@ -47,6 +45,8 @@ import {
     Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminTracking } from '@/hooks/useClarity';
+import { AdminEvents } from '@/lib/clarity';
 
 interface Column {
     key: string;
@@ -55,8 +55,7 @@ interface Column {
 }
 
 const columns: Column[] = [
-    { key: 'full_name', label: 'User', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
+    { key: 'phone', label: 'Phone', sortable: true },
     { key: 'role', label: 'Role', sortable: true },
     { key: 'total_xp', label: 'XP', sortable: true },
     { key: 'level', label: 'Level', sortable: false },
@@ -83,6 +82,7 @@ export function UserTable({
     onRefresh,
 }: UserTableProps) {
     const router = useRouter();
+    const { trackUserAction } = useAdminTracking();
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<UserWithLevel | null>(null);
@@ -122,6 +122,7 @@ export function UserTable({
                 throw new Error('Failed to delete user');
             }
 
+            trackUserAction(AdminEvents.USER_DELETED, userToDelete.id);
             toast.success('User deleted successfully');
             onRefresh();
         } catch (error) {
@@ -142,16 +143,6 @@ export function UserTable({
         ) : (
             <ArrowDown className="w-4 h-4 ml-1 text-pink-400" />
         );
-    };
-
-    const getInitials = (name: string | null) => {
-        if (!name) return 'U';
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
     };
 
     const getLevelColor = (level: number) => {
@@ -294,7 +285,7 @@ export function UserTable({
                     <TableBody>
                         {users.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={9} className="h-32 text-center text-white/40">
+                                <TableCell colSpan={8} className="h-32 text-center text-white/40">
                                     No users found
                                 </TableCell>
                             </TableRow>
@@ -315,25 +306,14 @@ export function UserTable({
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="w-10 h-10">
-                                                <AvatarFallback className="bg-gradient-to-br from-pink-500/30 to-violet-500/30 text-white text-sm">
-                                                    {getInitials(user.full_name)}
-                                                </AvatarFallback>
-                                            </Avatar>
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/30 to-violet-500/30 flex items-center justify-center">
+                                                <Phone className="w-4 h-4 text-white/60" />
+                                            </div>
                                             <div>
                                                 <p className="font-medium text-white">
-                                                    {user.full_name || 'Unnamed User'}
-                                                </p>
-                                                <p className="text-xs text-white/40 font-mono">
-                                                    {user.id.slice(0, 8)}...
+                                                    {user.phone || 'No phone'}
                                                 </p>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2 text-white/70">
-                                            <Mail className="w-4 h-4 text-white/40" />
-                                            {user.email || '-'}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -379,14 +359,20 @@ export function UserTable({
                                                 <DropdownMenuLabel className="text-white">Actions</DropdownMenuLabel>
                                                 <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem
-                                                    onClick={() => router.push(`/admin/users/${user.id}`)}
+                                                    onClick={() => {
+                                                        trackUserAction(AdminEvents.USER_DETAILS_VIEWED, user.id);
+                                                        router.push(`/admin/users/${user.id}`);
+                                                    }}
                                                     className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     View Details
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                                                    onClick={() => {
+                                                        trackUserAction(AdminEvents.USER_EDIT_STARTED, user.id);
+                                                        router.push(`/admin/users/${user.id}/edit`);
+                                                    }}
                                                     className="text-white focus:bg-white/10 focus:text-white"
                                                 >
                                                     <Pencil className="w-4 h-4 mr-2" />
@@ -416,8 +402,8 @@ export function UserTable({
                     <DialogHeader>
                         <DialogTitle>Delete User</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete{' '}
-                            <strong>{userToDelete?.full_name || 'this user'}</strong>? This action
+                            Are you sure you want to delete user{' '}
+                            <strong>{userToDelete?.phone || 'this user'}</strong>? This action
                             cannot be undone and will permanently remove all user data.
                         </DialogDescription>
                     </DialogHeader>

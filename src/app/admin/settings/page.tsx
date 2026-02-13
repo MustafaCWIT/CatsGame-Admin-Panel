@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Shield, Users, Search, Loader2 } from 'lucide-react';
+import { Shield, Users, Search, Loader2, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { UserWithLevel } from '@/types/database';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -107,8 +107,7 @@ export default function SettingsPage() {
 
     const filteredUsers = users.filter(user => {
         const matchesSearch =
-            user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+            user.phone?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
         return matchesSearch && matchesRole;
     });
@@ -138,7 +137,7 @@ export default function SettingsPage() {
                             <div className="flex-1 relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                                 <Input
-                                    placeholder="Search users by name or email..."
+                                    placeholder="Search users by phone number..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-10 bg-white/5 border-white/10"
@@ -171,8 +170,7 @@ export default function SettingsPage() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-white/10 hover:bg-white/5">
-                                            <TableHead className="text-white/60">User</TableHead>
-                                            <TableHead className="text-white/60">Email</TableHead>
+                                            <TableHead className="text-white/60">Phone</TableHead>
                                             <TableHead className="text-white/60">Current Role</TableHead>
                                             <TableHead className="text-white/60">Change Role</TableHead>
                                         </TableRow>
@@ -193,25 +191,17 @@ export default function SettingsPage() {
                                                     <TableCell>
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/30 to-violet-500/30 flex items-center justify-center text-white font-semibold">
-                                                                {user.full_name
-                                                                    ?.split(' ')
-                                                                    .map(n => n[0])
-                                                                    .join('')
-                                                                    .toUpperCase()
-                                                                    .slice(0, 2) || 'U'}
+                                                                <Phone className="w-4 h-4" />
                                                             </div>
                                                             <div>
                                                                 <p className="font-medium text-white">
-                                                                    {user.full_name || 'Unnamed User'}
+                                                                    {user.phone || 'No phone'}
                                                                 </p>
                                                                 <p className="text-xs text-white/40">
                                                                     {user.id.slice(0, 8)}...
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-white/70">
-                                                        {user.email || '-'}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Badge

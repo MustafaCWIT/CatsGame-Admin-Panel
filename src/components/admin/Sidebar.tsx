@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+
 import { cn } from '@/lib/utils';
 import logoImage from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,10 @@ import {
     LogOut,
     Menu,
     ChevronDown,
+    BarChart3,
+    Activity,
 } from 'lucide-react';
+import { trackEvent, AdminEvents } from '@/lib/clarity';
 
 interface NavItem {
     title: string;
@@ -44,6 +47,16 @@ const navItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Activities',
+        href: '/admin/activities',
+        icon: Activity,
+    },
+    {
+        title: 'Clarity Analytics',
+        href: '/admin/clarity',
+        icon: BarChart3,
     },
     {
         title: 'Settings',
@@ -88,7 +101,10 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                onClick={onItemClick}
+                                onClick={() => {
+                                    trackEvent(AdminEvents.SIDEBAR_NAVIGATED);
+                                    onItemClick?.();
+                                }}
                                 className={cn(
                                     'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ring-0 focus-visible:ring-offset-0',
                                     isActive
@@ -127,11 +143,15 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
 export function Sidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        await fetch('/api/auth/logout', { method: 'POST' });
         router.push('/login');
         router.refresh();
     };
@@ -154,18 +174,20 @@ export function Sidebar() {
                 </Link>
 
                 <div className="flex items-center gap-2">
-                    <UserDropdown onLogout={handleLogout} />
+                    {mounted && <UserDropdown onLogout={handleLogout} />}
 
-                    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                                <Menu className="w-5 h-5" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-72 p-0 bg-slate-950 border-white/10">
-                            <SidebarContent onItemClick={() => setMobileOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
+                    {mounted && (
+                        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                                    <Menu className="w-5 h-5" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-72 p-0 bg-slate-950 border-white/10">
+                                <SidebarContent onItemClick={() => setMobileOpen(false)} />
+                            </SheetContent>
+                        </Sheet>
+                    )}
                 </div>
             </div>
 
@@ -183,6 +205,26 @@ export function Sidebar() {
 }
 
 function UserDropdown({ onLogout }: { onLogout: () => void }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <Button variant="ghost" className="flex items-center gap-2 hover:bg-white/10">
+                <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-600 text-white text-sm">
+                        AD
+                    </AvatarFallback>
+                </Avatar>
+                <span className="text-white/80 text-sm hidden sm:inline">Admin</span>
+                <ChevronDown className="w-4 h-4 text-white/50" />
+            </Button>
+        );
+    }
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

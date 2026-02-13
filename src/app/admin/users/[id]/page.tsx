@@ -22,15 +22,11 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     ChevronLeft,
     Pencil,
     Trash2,
-    Mail,
     Phone,
-    Calendar,
-    Shield,
     Sparkles,
     Video,
     Activity as ActivityIcon,
@@ -208,13 +204,11 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                         <ChevronLeft className="w-5 h-5" />
                     </Button>
                     <div className="flex items-center gap-4">
-                        <Avatar className="w-16 h-16 border-2 border-pink-500/20">
-                            <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-600 text-white text-xl">
-                                {user.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                            </AvatarFallback>
-                        </Avatar>
+                        <div className="w-16 h-16 border-2 border-pink-500/20 rounded-full bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center">
+                            <Phone className="w-7 h-7 text-white" />
+                        </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-white tracking-tight">{user.full_name}</h1>
+                            <h1 className="text-3xl font-bold text-white tracking-tight">{user.phone || 'No phone'}</h1>
                             <p className="text-white/40 font-mono text-sm">{user.id}</p>
                         </div>
                     </div>
@@ -246,13 +240,6 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                     <div className="rounded-2xl bg-white/5 border border-white/10 p-6 space-y-6">
                         <h3 className="text-lg font-semibold text-white">Contact Information</h3>
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-white/70">
-                                <Mail className="w-5 h-5 text-white/30" />
-                                <div className="min-w-0">
-                                    <p className="text-xs text-white/40">Email Address</p>
-                                    <p className="truncate font-medium">{user.email || 'No email'}</p>
-                                </div>
-                            </div>
                             <div className="flex items-center gap-3 text-white/70">
                                 <Phone className="w-5 h-5 text-white/30" />
                                 <div className="min-w-0">

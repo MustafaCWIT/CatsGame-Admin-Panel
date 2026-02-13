@@ -1,29 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Profile, getLevelForXP } from '@/types/database';
+import { getLevelForXP } from '@/types/database';
+import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: adminProfile, error: adminProfileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (adminProfileError || adminProfile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const supabase = createAdminClient();
 
         // Get query parameters
         const searchParams = request.nextUrl.searchParams;
@@ -44,9 +30,9 @@ export async function GET(request: NextRequest) {
             .from('profiles')
             .select('*', { count: 'exact' });
 
-        // Apply search filter
+        // Apply search filter (phone-based)
         if (search) {
-            query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+            query = query.ilike('phone', `%${search}%`);
         }
 
         // Apply XP filters
@@ -100,34 +86,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = await createClient();
-
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: adminProfile, error: adminProfileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (adminProfileError || adminProfile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
         // Get request body
         const body = await request.json();
-        const { full_name, email, phone, password, total_xp = 0, videos_count = 0, role = 'user' } = body;
+        const { phone, password, total_xp = 0, videos_count = 0, role = 'user' } = body;
 
         // Validate required fields
-        if (!full_name || !email || !password) {
+        if (!phone || !password) {
             return NextResponse.json(
-                { error: 'Missing required fields: full_name, email, and password are required' },
+                { error: 'Missing required fields: phone and password are required' },
                 { status: 400 }
             );
         }
@@ -139,51 +108,48 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Use admin client to create user
         const adminClient = createAdminClient();
 
-        // Create auth user
-        const { data: authData, error: createAuthError } = await adminClient.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true,
-        });
+        // Check if phone already exists
+        const { data: existing } = await adminClient
+            .from('profiles')
+            .select('id')
+            .eq('phone', phone)
+            .single();
 
-        if (createAuthError) {
-            console.error('Error creating auth user:', createAuthError);
+        if (existing) {
             return NextResponse.json(
-                { error: createAuthError.message || 'Failed to create user' },
+                { error: 'A user with this phone number already exists' },
                 { status: 400 }
             );
         }
 
-        if (!authData.user) {
-            return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
-        }
+        // Hash password with SHA-256 (same as game app)
+        const hashedPassword = crypto
+            .createHash('sha256')
+            .update(password)
+            .digest('hex');
 
-        // Create profile
+        // Create profile directly in profiles table
         const { data: newProfile, error: newProfileError } = await adminClient
             .from('profiles')
-            .upsert({
-                id: authData.user.id,
-                full_name,
-                email,
-                phone: phone || null,
+            .insert({
+                id: crypto.randomUUID(),
+                phone,
+                password: hashedPassword,
                 total_xp,
                 videos_count,
                 activities: [],
                 updated_at: new Date().toISOString(),
-                role: role || 'user', // Set role from request or default to 'user'
+                role: role || 'user',
             })
             .select()
             .single();
 
         if (newProfileError) {
-            // Rollback - delete auth user if profile creation fails
-            await adminClient.auth.admin.deleteUser(authData.user.id);
-            console.error('Error creating/upserting profile:', newProfileError);
+            console.error('Error creating profile:', newProfileError);
             return NextResponse.json(
-                { error: `Failed to create user profile: ${newProfileError.message}` },
+                { error: `Failed to create user: ${newProfileError.message}` },
                 { status: 500 }
             );
         }

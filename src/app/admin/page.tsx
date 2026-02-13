@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { DashboardStats, Activity } from '@/types/database';
 import { StatsCard } from '@/components/admin/StatsCard';
 import {
@@ -11,7 +10,7 @@ import {
     TopUsersChart,
     GameTimePerUserChart,
 } from '@/components/admin/AnalyticsCharts';
-import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Users,
@@ -29,26 +28,78 @@ interface AnalyticsData {
     recentActivities: { userName: string; activity: Activity }[];
 }
 
+interface ActivityMetrics {
+    totalActivities: number;
+    totalUsers: number;
+    activeSessionsToday: number;
+    gameSessions: number;
+    videoUploads: number;
+    conversionRate: number;
+    averageGameScore: number;
+    averageSessionDuration: number;
+}
+
 export default function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+    const [activityMetrics, setActivityMetrics] = useState<ActivityMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                // Fetch stats
-                const statsRes = await fetch('/api/admin/stats');
-                if (!statsRes.ok) throw new Error('Failed to fetch stats');
-                const statsData = await statsRes.json();
-                setStats(statsData);
+                // Fetch all data independently so one failure doesn't block the rest
+                const [statsResult, analyticsResult, metricsResult] = await Promise.allSettled([
+                    fetch('/api/admin/stats').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Stats: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                    fetch('/api/admin/analytics?days=30').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Analytics: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                    fetch('/api/admin/activities/metrics').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Metrics: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                ]);
 
-                // Fetch analytics
-                const analyticsRes = await fetch('/api/admin/analytics?days=30');
-                if (!analyticsRes.ok) throw new Error('Failed to fetch analytics');
-                const analyticsData = await analyticsRes.json();
-                setAnalytics(analyticsData);
+                if (statsResult.status === 'fulfilled') {
+                    setStats(statsResult.value);
+                } else {
+                    console.error('Failed to fetch stats:', statsResult.reason);
+                }
+
+                if (analyticsResult.status === 'fulfilled') {
+                    setAnalytics(analyticsResult.value);
+                } else {
+                    console.error('Failed to fetch analytics:', analyticsResult.reason);
+                }
+
+                if (metricsResult.status === 'fulfilled') {
+                    setActivityMetrics(metricsResult.value);
+                } else {
+                    console.error('Failed to fetch metrics:', metricsResult.reason);
+                }
+
+                // Only show error if ALL requests failed
+                if (
+                    statsResult.status === 'rejected' &&
+                    analyticsResult.status === 'rejected' &&
+                    metricsResult.status === 'rejected'
+                ) {
+                    setError('Failed to load dashboard data. Please try again.');
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load dashboard');
             } finally {
@@ -85,7 +136,8 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Stats Grid - All in one row */}
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard
                     title="Total Users"
                     value={stats?.totalUsers || 0}
@@ -102,6 +154,13 @@ export default function AdminDashboard() {
                     icon={Clock}
                     description="All users combined"
                 />
+                {activityMetrics && (
+                    <StatsCard
+                        title="Video Uploads"
+                        value={activityMetrics.videoUploads.toLocaleString()}
+                        icon={Video}
+                    />
+                )}
             </div>
 
 
@@ -138,8 +197,7 @@ export default function AdminDashboard() {
                 </ChartContainer>
             </div>
 
-            {/* Recent Activity */}
-            <RecentActivityFeed activities={analytics?.recentActivities || []} />
+
         </div>
     );
 }
@@ -152,8 +210,8 @@ function DashboardSkeleton() {
                 <Skeleton className="h-5 w-96 mt-2 bg-white/10" />
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
                     <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
                 ))}
             </div>
@@ -181,24 +239,24 @@ function formatGameTime(seconds: number): string {
     if (seconds < 60) {
         return `${seconds}s`;
     }
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
-    
+
     if (hours > 0) {
         if (minutes > 0) {
             return `${hours}h ${minutes}m`;
         }
         return `${hours}h`;
     }
-    
+
     if (minutes > 0) {
         if (remainingSeconds > 0) {
             return `${minutes}m ${remainingSeconds}s`;
         }
         return `${minutes}m`;
     }
-    
+
     return `${remainingSeconds}s`;
 }

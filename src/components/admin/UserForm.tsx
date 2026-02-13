@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { CreateUserPayload, UpdateUserPayload, UserWithLevel, Activity } from '@/types/database';
+import { CreateUserPayload, UpdateUserPayload, UserWithLevel } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,8 +32,6 @@ interface UserFormProps {
 }
 
 interface FormData {
-    full_name: string;
-    email: string;
     phone: string;
     password: string;
     confirmPassword: string;
@@ -58,8 +55,6 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
         setValue,
     } = useForm<FormData>({
         defaultValues: {
-            full_name: user?.full_name || '',
-            email: user?.email || '',
             phone: user?.phone || '',
             password: '',
             confirmPassword: '',
@@ -78,9 +73,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
             if (isEditing) {
                 // Update user
                 const updatePayload: UpdateUserPayload = {
-                    full_name: data.full_name,
-                    email: data.email,
-                    phone: data.phone || undefined,
+                    phone: data.phone,
                     total_xp: data.total_xp,
                     videos_count: data.videos_count,
                     role: data.role,
@@ -101,9 +94,7 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
             } else {
                 // Create user
                 const createPayload: CreateUserPayload = {
-                    full_name: data.full_name,
-                    email: data.email,
-                    phone: data.phone || undefined,
+                    phone: data.phone,
                     password: data.password,
                     total_xp: data.total_xp,
                     videos_count: data.videos_count,
@@ -147,46 +138,17 @@ export function UserForm({ user, open, onOpenChange, onSuccess }: UserFormProps)
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="full_name">Full Name *</Label>
-                            <Input
-                                id="full_name"
-                                placeholder="Enter full name"
-                                {...register('full_name', { required: 'Full name is required' })}
-                            />
-                            {errors.full_name && (
-                                <p className="text-sm text-red-500">{errors.full_name.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email *</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="Enter email"
-                                {...register('email', {
-                                    required: 'Email is required',
-                                    pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                        message: 'Invalid email address',
-                                    },
-                                })}
-                            />
-                            {errors.email && (
-                                <p className="text-sm text-red-500">{errors.email.message}</p>
-                            )}
-                        </div>
-                    </div>
-
                     <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">Phone Number *</Label>
                         <Input
                             id="phone"
-                            placeholder="Enter phone number"
-                            {...register('phone')}
+                            type="tel"
+                            placeholder="+971XXXXXXXXX"
+                            {...register('phone', { required: 'Phone number is required' })}
                         />
+                        {errors.phone && (
+                            <p className="text-sm text-red-500">{errors.phone.message}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
