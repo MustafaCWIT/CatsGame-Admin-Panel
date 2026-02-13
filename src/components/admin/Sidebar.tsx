@@ -143,7 +143,12 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
 export function Sidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleLogout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
@@ -169,18 +174,20 @@ export function Sidebar() {
                 </Link>
 
                 <div className="flex items-center gap-2">
-                    <UserDropdown onLogout={handleLogout} />
+                    {mounted && <UserDropdown onLogout={handleLogout} />}
 
-                    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                                <Menu className="w-5 h-5" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-72 p-0 bg-slate-950 border-white/10">
-                            <SidebarContent onItemClick={() => setMobileOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
+                    {mounted && (
+                        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                                    <Menu className="w-5 h-5" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-72 p-0 bg-slate-950 border-white/10">
+                                <SidebarContent onItemClick={() => setMobileOpen(false)} />
+                            </SheetContent>
+                        </Sheet>
+                    )}
                 </div>
             </div>
 
