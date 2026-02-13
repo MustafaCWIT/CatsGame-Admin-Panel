@@ -108,8 +108,18 @@ export default function ActivitiesPage() {
             if (activityType) params.append('activityType', activityType);
             if (userId) params.append('userId', userId);
             if (searchDebounced) params.append('search', searchDebounced);
-            if (startDate) params.append('startDate', startDate);
-            if (endDate) params.append('endDate', endDate);
+            
+            // Format dates properly - startDate should be start of day, endDate should be end of day
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                params.append('startDate', start.toISOString());
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                params.append('endDate', end.toISOString());
+            }
 
             const response = await fetch(`/api/admin/activities?${params}`);
             if (!response.ok) throw new Error('Failed to fetch activities');
@@ -234,21 +244,43 @@ export default function ActivitiesPage() {
                         </SelectContent>
                     </Select>
 
-                    <Input
-                        type="date"
-                        placeholder="Start Date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
-                    />
+                    <div className="relative">
+                        <Input
+                            type="date"
+                            placeholder="Start Date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-white/5 border-white/10 text-white pr-8"
+                        />
+                        {startDate && (
+                            <button
+                                onClick={() => setStartDate('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+                                title="Clear start date"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
 
-                    <Input
-                        type="date"
-                        placeholder="End Date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
-                    />
+                    <div className="relative">
+                        <Input
+                            type="date"
+                            placeholder="End Date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-white/5 border-white/10 text-white pr-8"
+                        />
+                        {endDate && (
+                            <button
+                                onClick={() => setEndDate('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+                                title="Clear end date"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
                 </div>
             </Card>
 

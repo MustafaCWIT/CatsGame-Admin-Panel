@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -199,6 +199,26 @@ export function Sidebar() {
 }
 
 function UserDropdown({ onLogout }: { onLogout: () => void }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <Button variant="ghost" className="flex items-center gap-2 hover:bg-white/10">
+                <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-600 text-white text-sm">
+                        AD
+                    </AvatarFallback>
+                </Avatar>
+                <span className="text-white/80 text-sm hidden sm:inline">Admin</span>
+                <ChevronDown className="w-4 h-4 text-white/50" />
+            </Button>
+        );
+    }
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

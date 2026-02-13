@@ -18,9 +18,6 @@ import {
     Users,
     Clock,
     Video,
-    Activity,
-    TrendingUp,
-    Gamepad2,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -108,6 +105,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid */}
+            {/* Stats Grid - All in one row */}
             <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <StatsCard
                     title="Total Users"
@@ -125,40 +123,14 @@ export default function AdminDashboard() {
                     icon={Clock}
                     description="All users combined"
                 />
-                <StatsCard
-                    title="Total Activities"
-                    value={activityMetrics?.totalActivities.toLocaleString() || '0'}
-                    icon={Activity}
-                    description="All tracked activities"
-                />
-            </div>
-
-            {/* Activity Metrics Grid */}
-            {activityMetrics && (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatsCard
-                        title="Active Sessions Today"
-                        value={activityMetrics.activeSessionsToday}
-                        icon={Activity}
-                    />
-                    <StatsCard
-                        title="Game Sessions"
-                        value={activityMetrics.gameSessions.toLocaleString()}
-                        icon={Gamepad2}
-                    />
+                {activityMetrics && (
                     <StatsCard
                         title="Video Uploads"
                         value={activityMetrics.videoUploads.toLocaleString()}
                         icon={Video}
                     />
-                    <StatsCard
-                        title="Conversion Rate"
-                        value={`${activityMetrics.conversionRate}%`}
-                        icon={TrendingUp}
-                        description="Upload completion rate"
-                    />
-                </div>
-            )}
+                )}
+            </div>
 
 
 
@@ -211,8 +183,8 @@ function DashboardSkeleton() {
                 <Skeleton className="h-5 w-96 mt-2 bg-white/10" />
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
                     <Skeleton key={i} className="h-32 rounded-2xl bg-white/10" />
                 ))}
             </div>
