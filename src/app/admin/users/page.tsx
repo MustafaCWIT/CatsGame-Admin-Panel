@@ -156,9 +156,8 @@ export default function UsersPage() {
             const data: PaginatedResponse<UserWithLevel> = await response.json();
 
             // Generate CSV
-            const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
+            const headers = ['Full Name', 'Email', 'Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
             const rows = data.data.map((user) => [
-                user.id,
                 user.full_name || '',
                 user.email || '',
                 user.phone || '',

@@ -176,11 +176,9 @@ export default function ActivitiesPage() {
             const data: PaginatedResponse<UserActivity> = await response.json();
 
             // Convert to CSV
-            const headers = ['ID', 'Timestamp', 'User ID', 'User Name', 'User Email', 'Activity Type', 'Details'];
+            const headers = ['Timestamp', 'User ID', 'User Name', 'User Email', 'Activity Type', 'Details'];
             const rows = data.data.map(activity => [
-                activity.id,
                 activity.created_at,
-                activity.user_id,
                 activity.user_name || '',
                 activity.user_email || '',
                 activity.activity_type,
