@@ -2,7 +2,6 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +11,7 @@ import Image from 'next/image';
 import logo from '@/assets/logo.png';
 
 function LoginForm() {
-    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,35 +26,15 @@ function LoginForm() {
         setError(null);
 
         try {
-            const supabase = createClient();
-
-            const { data, error: signInError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, password }),
             });
 
-            if (signInError) {
-                setError(signInError.message);
-                setLoading(false);
-                return;
-            }
-
-            if (!data.user) {
-                setError('Login failed. Please try again.');
-                setLoading(false);
-                return;
-            }
-
-            // Check if user is an admin
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', data.user.id)
-                .single();
-
-            if (profileError || profile?.role !== 'admin') {
-                await supabase.auth.signOut();
-                setError('You do not have admin access.');
+            if (!response.ok) {
+                const data = await response.json();
+                setError(data.error || 'Invalid phone number or password.');
                 setLoading(false);
                 return;
             }
@@ -105,13 +84,13 @@ function LoginForm() {
 
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-white/90">Email</Label>
+                            <Label htmlFor="phone" className="text-white/90">Phone Number</Label>
                             <Input
-                                id="email"
-                                type="email"
-                                placeholder="admin@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                id="phone"
+                                type="tel"
+                                placeholder="+971XXXXXXXXX"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
                                 required
                                 className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-pink-500 focus:ring-pink-500/20"
                             />

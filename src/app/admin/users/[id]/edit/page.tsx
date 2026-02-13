@@ -46,7 +46,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                 </Button>
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">Edit User</h1>
-                    <p className="text-white/60 mt-1">Update profile and level information for {user?.full_name}</p>
+                    <p className="text-white/60 mt-1">Update profile and level information for {user?.phone || 'user'}</p>
                 </div>
             </div>
 

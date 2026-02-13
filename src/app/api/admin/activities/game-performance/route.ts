@@ -1,29 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { GamePerformanceMetrics } from '@/types/database';
 import { subDays } from 'date-fns';
 
 export async function GET(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError || profile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const supabase = createAdminClient();
 
         const searchParams = request.nextUrl.searchParams;
         const days = parseInt(searchParams.get('days') || '7');
@@ -80,7 +66,7 @@ export async function GET(request: NextRequest) {
 
         // Calculate average score by level
         const levelScoreMap = new Map<number, { total: number; count: number }>();
-        
+
         gameEndedData.forEach(item => {
             const level = item.activity_details?.level;
             const score = item.activity_details?.score;
@@ -115,4 +101,3 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
-

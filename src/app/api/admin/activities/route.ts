@@ -1,28 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { UserActivity } from '@/types/database';
 
 export async function GET(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError || profile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const supabase = createAdminClient();
 
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
@@ -59,11 +45,11 @@ export async function GET(request: NextRequest) {
         }
 
         if (search) {
-            // First, find user IDs matching the search term by name or email
+            // First, find user IDs matching the search term by phone
             const { data: matchingProfiles } = await supabase
                 .from('profiles')
                 .select('id')
-                .or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+                .ilike('phone', `%${search}%`);
 
             const matchingUserIds = (matchingProfiles || []).map((p: any) => p.id);
 
@@ -86,15 +72,15 @@ export async function GET(request: NextRequest) {
 
         // Get unique user IDs to fetch profiles separately
         const userIds = [...new Set((activitiesData || []).map((item: any) => item.user_id).filter(Boolean))];
-        
+
         // Fetch profiles for these users (manual join since FK relationship not detected by PostgREST)
         let profilesMap = new Map();
         if (userIds.length > 0) {
             const { data: profilesData } = await supabase
                 .from('profiles')
-                .select('id, full_name, email, total_xp, videos_count')
+                .select('id, phone, total_xp, videos_count')
                 .in('id', userIds);
-            
+
             profilesMap = new Map(
                 (profilesData || []).map((profile: any) => [profile.id, profile])
             );
@@ -109,8 +95,7 @@ export async function GET(request: NextRequest) {
                 activity_type: item.activity_type,
                 activity_details: item.activity_details,
                 created_at: item.created_at,
-                user_name: profile?.full_name || null,
-                user_email: profile?.email || null,
+                user_phone: profile?.phone || null,
                 user_total_xp: profile?.total_xp || 0,
                 user_videos_count: profile?.videos_count || 0,
             };
@@ -130,4 +115,3 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
-

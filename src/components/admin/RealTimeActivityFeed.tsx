@@ -130,7 +130,7 @@ export function RealTimeActivityFeed({
                                             href={`/admin/users/${activity.user_id}`}
                                             className="text-white/70 hover:text-blue-400 text-sm transition-colors"
                                         >
-                                            {activity.user_name || activity.user_email || 'Unknown User'}
+                                            {activity.user_phone || 'Unknown User'}
                                         </Link>
                                         {activity.activity_details && (
                                             <span className="text-white/40 text-xs truncate">

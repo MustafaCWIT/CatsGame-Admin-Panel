@@ -62,9 +62,7 @@ export interface AnalyticsData {
 }
 
 export interface CreateUserPayload {
-  full_name: string;
-  email: string;
-  phone?: string;
+  phone: string;
   password: string;
   total_xp?: number;
   videos_count?: number;
@@ -72,8 +70,6 @@ export interface CreateUserPayload {
 }
 
 export interface UpdateUserPayload {
-  full_name?: string;
-  email?: string;
   phone?: string;
   total_xp?: number;
   videos_count?: number;
@@ -89,8 +85,7 @@ export interface UserActivity {
   activity_details: Record<string, any> | null;
   created_at: string;
   // Joined fields from profiles
-  user_name?: string | null;
-  user_email?: string | null;
+  user_phone?: string | null;
   user_total_xp?: number;
   user_videos_count?: number;
 }

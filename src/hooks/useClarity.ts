@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { identifyAdminUser, trackEvent, setTag, AdminEvents } from '@/lib/clarity';
-import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
 
 /**
@@ -57,23 +56,18 @@ export function useClarityTracking() {
                     return;
                 }
 
-                const supabase = createClient();
-                const { data: { user } } = await supabase.auth.getUser();
+                // Fetch current admin user from session
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) return;
+                const { user } = await res.json();
 
                 if (user) {
-                    // Get user profile for role and name
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('full_name, role')
-                        .eq('id', user.id)
-                        .single();
-
                     // Identify admin user
                     identifyAdminUser(
                         user.id,
-                        user.email || '',
-                        profile?.full_name || undefined,
-                        profile?.role || undefined
+                        user.phone || '',
+                        undefined,
+                        user.role || undefined
                     );
 
                     // Set page-specific tags

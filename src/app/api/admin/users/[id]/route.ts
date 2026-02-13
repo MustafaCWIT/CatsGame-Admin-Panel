@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getLevelForXP } from '@/types/database';
 
@@ -9,25 +9,10 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const supabase = await createClient();
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: adminProfile, error: adminProfileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (adminProfileError || adminProfile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const supabase = createAdminClient();
 
         // Fetch user profile
         const { data: profile, error: profileError } = await supabase
@@ -60,34 +45,15 @@ export async function PATCH(
 ) {
     try {
         const { id } = await params;
-        const supabase = await createClient();
-
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: adminProfile, error: adminProfileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (adminProfileError || adminProfile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
         // Get request body
         const body = await request.json();
-        const { full_name, email, phone, total_xp, videos_count, activities, role } = body;
+        const { phone, total_xp, videos_count, activities, role } = body;
 
         // Build update object
         const updateData: Record<string, unknown> = {};
-        if (full_name !== undefined) updateData.full_name = full_name;
-        if (email !== undefined) updateData.email = email;
         if (phone !== undefined) updateData.phone = phone;
         if (total_xp !== undefined) updateData.total_xp = total_xp;
         if (videos_count !== undefined) updateData.videos_count = videos_count;
@@ -113,18 +79,6 @@ export async function PATCH(
             return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
         }
 
-        // If email is being updated, also update auth user
-        if (email) {
-            const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(id, {
-                email,
-            });
-
-            if (authUpdateError) {
-                console.error('Error updating auth user email:', authUpdateError);
-                // Continue anyway - profile was updated
-            }
-        }
-
         return NextResponse.json({
             ...profile,
             level: getLevelForXP(profile.total_xp || 0),
@@ -141,30 +95,16 @@ export async function DELETE(
 ) {
     try {
         const { id } = await params;
-        const supabase = await createClient();
-
-        // Verify authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin role
-        const { data: adminProfile, error: adminProfileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (adminProfileError || adminProfile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-        }
+        const auth = await requireAdmin();
+        if ('error' in auth) return auth.error;
 
         const adminClient = createAdminClient();
 
-        // Delete from auth (will cascade to profiles due to foreign key)
-        const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
+        // Delete profile directly
+        const { error: deleteError } = await adminClient
+            .from('profiles')
+            .delete()
+            .eq('id', id);
 
         if (deleteError) {
             console.error('Error deleting user:', deleteError);

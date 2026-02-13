@@ -176,11 +176,10 @@ export default function ActivitiesPage() {
             const data: PaginatedResponse<UserActivity> = await response.json();
 
             // Convert to CSV
-            const headers = ['Timestamp', 'User ID', 'User Name', 'User Email', 'Activity Type', 'Details'];
+            const headers = ['Timestamp', 'User Phone', 'Activity Type', 'Details'];
             const rows = data.data.map(activity => [
                 activity.created_at,
-                activity.user_name || '',
-                activity.user_email || '',
+                (activity as any).user_phone || '',
                 activity.activity_type,
                 JSON.stringify(activity.activity_details || {}),
             ]);
@@ -297,7 +296,7 @@ export default function ActivitiesPage() {
                                 <TableHeader>
                                     <TableRow className="border-white/10">
                                         <TableHead className="text-white/60">Timestamp</TableHead>
-                                        <TableHead className="text-white/60">User</TableHead>
+                                        <TableHead className="text-white/60">Phone</TableHead>
                                         <TableHead className="text-white/60">Activity Type</TableHead>
                                         <TableHead className="text-white/60">Actions</TableHead>
                                     </TableRow>
@@ -323,7 +322,7 @@ export default function ActivitiesPage() {
                                                         href={`/admin/users/${activity.user_id}`}
                                                         className="text-white hover:text-blue-400 transition-colors"
                                                     >
-                                                        {activity.user_name || activity.user_email || 'Unknown'}
+                                                        {(activity as any).user_phone || 'Unknown'}
                                                     </Link>
                                                 </TableCell>
                                                 <TableCell>
@@ -447,12 +446,8 @@ export default function ActivitiesPage() {
                                     <h4 className="text-white font-medium mb-2">User Info</h4>
                                     <div className="bg-white/5 p-3 rounded-lg space-y-2 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-white/60">Name:</span>
-                                            <span className="text-white">{selectedActivity.user_name || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/60">Email:</span>
-                                            <span className="text-white">{selectedActivity.user_email || '-'}</span>
+                                            <span className="text-white/60">Phone:</span>
+                                            <span className="text-white">{(selectedActivity as any).user_phone || '-'}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-white/60">Total XP:</span>

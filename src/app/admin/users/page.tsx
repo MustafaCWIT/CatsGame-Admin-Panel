@@ -156,10 +156,8 @@ export default function UsersPage() {
             const data: PaginatedResponse<UserWithLevel> = await response.json();
 
             // Generate CSV
-            const headers = ['Full Name', 'Email', 'Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
+            const headers = ['Phone', 'Role', 'Total XP', 'Level', 'Videos Count', 'Last Updated'];
             const rows = data.data.map((user) => [
-                user.full_name || '',
-                user.email || '',
                 user.phone || '',
                 (user as any)?.role || 'user',
                 user.total_xp || 0,
@@ -217,7 +215,7 @@ export default function UsersPage() {
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                         <Input
-                            placeholder="Search by name, email, or phone..."
+                            placeholder="Search by phone number..."
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                             className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"

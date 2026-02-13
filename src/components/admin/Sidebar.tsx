@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+
 import { cn } from '@/lib/utils';
 import logoImage from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
@@ -146,8 +146,7 @@ export function Sidebar() {
     const router = useRouter();
 
     const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        await fetch('/api/auth/logout', { method: 'POST' });
         router.push('/login');
         router.refresh();
     };
