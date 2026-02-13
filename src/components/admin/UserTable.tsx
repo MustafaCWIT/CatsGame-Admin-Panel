@@ -313,9 +313,6 @@ export function UserTable({
                                                 <p className="font-medium text-white">
                                                     {user.phone || 'No phone'}
                                                 </p>
-                                                <p className="text-xs text-white/40 font-mono">
-                                                    {user.id.slice(0, 8)}...
-                                                </p>
                                             </div>
                                         </div>
                                     </TableCell>

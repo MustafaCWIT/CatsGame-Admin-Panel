@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
         const { data: newProfile, error: newProfileError } = await adminClient
             .from('profiles')
             .insert({
+                id: crypto.randomUUID(),
                 phone,
                 password: hashedPassword,
                 total_xp,
