@@ -7,13 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     Table,
     TableBody,
     TableCell,
@@ -31,6 +24,26 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
     Download,
     RefreshCw,
     Search,
@@ -39,7 +52,10 @@ import {
     ChevronRight,
     Eye,
     ExternalLink,
+    ChevronsUpDown,
+    Check,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -247,26 +263,54 @@ export default function ActivitiesPage() {
                         />
                     </div>
 
-                    <Select value={activityType || 'all'} onValueChange={(value) => setActivityType(value === 'all' ? '' : value)}>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                            <SelectValue placeholder="All Activity Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Activity Types</SelectItem>
-                            {activityTypes.map(type => (
-                                <SelectItem key={type} value={type}>
-                                    {type.replace(/_/g, ' ')}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                className="justify-between bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+                            >
+                                {activityType
+                                    ? activityType.replace(/_/g, ' ')
+                                    : 'All Activity Types'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[250px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search activity type..." />
+                                <CommandList>
+                                    <CommandEmpty>No activity type found.</CommandEmpty>
+                                    <CommandGroup>
+                                        <CommandItem
+                                            value="all"
+                                            onSelect={() => setActivityType('')}
+                                        >
+                                            <Check className={cn("mr-2 h-4 w-4", !activityType ? "opacity-100" : "opacity-0")} />
+                                            All Activity Types
+                                        </CommandItem>
+                                        {activityTypes.map(type => (
+                                            <CommandItem
+                                                key={type}
+                                                value={type}
+                                                onSelect={() => setActivityType(type === activityType ? '' : type)}
+                                            >
+                                                <Check className={cn("mr-2 h-4 w-4", activityType === type ? "opacity-100" : "opacity-0")} />
+                                                {type.replace(/_/g, ' ')}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
 
                     <Input
                         type="date"
                         placeholder="Start Date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-white/5 border-white/10 text-white [color-scheme:dark]"
                     />
 
                     <Input
@@ -274,7 +318,7 @@ export default function ActivitiesPage() {
                         placeholder="End Date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-white/5 border-white/10 text-white [color-scheme:dark]"
                     />
                 </div>
             </Card>
