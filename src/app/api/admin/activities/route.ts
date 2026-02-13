@@ -11,6 +11,22 @@ export async function GET(request: NextRequest) {
         const supabase = createAdminClient();
 
         const searchParams = request.nextUrl.searchParams;
+
+        // Return distinct activity types if requested
+        if (searchParams.get('distinct') === 'activity_type') {
+            const { data, error } = await supabase
+                .from('user_activities')
+                .select('activity_type')
+                .order('activity_type', { ascending: true });
+
+            if (error) {
+                return NextResponse.json({ error: 'Failed to fetch activity types' }, { status: 500 });
+            }
+
+            const uniqueTypes = [...new Set((data || []).map(d => d.activity_type))];
+            return NextResponse.json({ types: uniqueTypes });
+        }
+
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '50');
         const activityType = searchParams.get('activityType');

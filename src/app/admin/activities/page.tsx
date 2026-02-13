@@ -44,27 +44,9 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const ACTIVITY_TYPES = [
-    'user_signup',
-    'user_login',
-    'user_logout',
-    'session_start',
-    'game_started',
-    'game_ended',
-    'game_restarted',
-    'game_paused',
-    'game_resumed',
-    'upload_button_clicked',
-    'upload_video_file_selected',
-    'upload_receipt_file_selected',
-    'upload_submit_button_clicked',
-    'video_uploaded',
-    'play_button_clicked',
-    'end_game_button_clicked',
-];
-
 export default function ActivitiesPage() {
     const [activities, setActivities] = useState<UserActivity[]>([]);
+    const [activityTypes, setActivityTypes] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -113,6 +95,20 @@ export default function ActivitiesPage() {
         }, 500);
         return () => clearTimeout(timeoutId);
     }, [search]);
+
+    // Fetch distinct activity types on mount
+    useEffect(() => {
+        async function fetchTypes() {
+            try {
+                const res = await fetch('/api/admin/activities?distinct=activity_type');
+                if (res.ok) {
+                    const data = await res.json();
+                    setActivityTypes(data.types || []);
+                }
+            } catch {}
+        }
+        fetchTypes();
+    }, []);
 
     // Fetch activities
     useEffect(() => {
@@ -257,7 +253,7 @@ export default function ActivitiesPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Activity Types</SelectItem>
-                            {ACTIVITY_TYPES.map(type => (
+                            {activityTypes.map(type => (
                                 <SelectItem key={type} value={type}>
                                     {type.replace(/_/g, ' ')}
                                 </SelectItem>
