@@ -209,9 +209,11 @@ export default function ActivitiesPage() {
     };
 
     const clarityProjectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
-    const getClarityLink = (userId: string) => {
+    const getClarityLink = (activityDetails: Record<string, unknown> | null) => {
         if (!clarityProjectId) return null;
-        return `https://clarity.microsoft.com/projects/${clarityProjectId}/recordings?userId=${userId}`;
+        const screen = activityDetails?.screen as string | undefined;
+        if (!screen) return null;
+        return `https://clarity.microsoft.com/projects/view/${clarityProjectId}/dashboard?date=Last%203%20days&smartEvents=${encodeURIComponent(`screen-${screen}`)}`;
     };
 
     return (
@@ -463,11 +465,11 @@ export default function ActivitiesPage() {
                                     </pre>
                                 </div>
 
-                                {getClarityLink(selectedActivity.user_id) && (
+                                {getClarityLink(selectedActivity.activity_details) && (
                                     <div>
                                         <Button asChild className="w-full">
                                             <a
-                                                href={getClarityLink(selectedActivity.user_id)!}
+                                                href={getClarityLink(selectedActivity.activity_details)!}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
