@@ -276,12 +276,12 @@ export default function ActivitiesPage() {
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[250px] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search activity type..." />
+                        <PopoverContent className="w-[250px] p-0 bg-black border-white/10">
+                            <Command className="bg-black">
+                                <CommandInput placeholder="Search activity type..." className="text-white" />
                                 <CommandList>
-                                    <CommandEmpty>No activity type found.</CommandEmpty>
-                                    <CommandGroup>
+                                    <CommandEmpty className="text-white/60 py-3 text-center text-sm">No activity type found.</CommandEmpty>
+                                    <CommandGroup className="text-white [&_[cmdk-item]]:text-white [&_[cmdk-item][data-selected=true]]:bg-white/10">
                                         <CommandItem
                                             value="all"
                                             onSelect={() => setActivityType('')}
