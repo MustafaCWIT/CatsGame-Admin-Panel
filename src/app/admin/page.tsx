@@ -10,8 +10,7 @@ import {
     TopUsersChart,
     GameTimePerUserChart,
 } from '@/components/admin/AnalyticsCharts';
-import { RecentActivityFeed } from '@/components/admin/RecentActivityFeed';
-import { RealTimeActivityFeed } from '@/components/admin/RealTimeActivityFeed';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Users,
@@ -198,11 +197,7 @@ export default function AdminDashboard() {
                 </ChartContainer>
             </div>
 
-            {/* Recent Activity */}
-            <RecentActivityFeed activities={analytics?.recentActivities || []} />
 
-            {/* Real-time Activity Feed */}
-            <RealTimeActivityFeed maxItems={20} refreshInterval={5000} />
         </div>
     );
 }
