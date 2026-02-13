@@ -109,7 +109,7 @@ export default function ClarityAnalyticsPage() {
     };
 
     const clarityDashboardUrl = clarityProjectId
-        ? `https://clarity.microsoft.com/projects/${clarityProjectId}`
+        ? `https://clarity.microsoft.com/projects/view/${clarityProjectId}/dashboard?date=Last%203%20days`
         : 'https://clarity.microsoft.com';
 
     const clarityRecordingsUrl = clarityProjectId
