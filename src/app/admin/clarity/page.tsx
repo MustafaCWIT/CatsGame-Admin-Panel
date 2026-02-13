@@ -113,11 +113,11 @@ export default function ClarityAnalyticsPage() {
         : 'https://clarity.microsoft.com';
 
     const clarityRecordingsUrl = clarityProjectId
-        ? `https://clarity.microsoft.com/projects/${clarityProjectId}/recordings`
+        ? `https://clarity.microsoft.com/projects/view/${clarityProjectId}/recordings`
         : null;
 
     const clarityHeatmapsUrl = clarityProjectId
-        ? `https://clarity.microsoft.com/projects/${clarityProjectId}/heatmaps`
+        ? `https://clarity.microsoft.com/projects/view/${clarityProjectId}/heatmaps`
         : null;
 
     // Helper to find a metric by name from the API response
