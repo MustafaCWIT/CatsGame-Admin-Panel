@@ -50,23 +50,56 @@ export default function AdminDashboard() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // Fetch stats
-                const statsRes = await fetch('/api/admin/stats');
-                if (!statsRes.ok) throw new Error('Failed to fetch stats');
-                const statsData = await statsRes.json();
-                setStats(statsData);
+                // Fetch all data independently so one failure doesn't block the rest
+                const [statsResult, analyticsResult, metricsResult] = await Promise.allSettled([
+                    fetch('/api/admin/stats').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Stats: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                    fetch('/api/admin/analytics?days=30').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Analytics: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                    fetch('/api/admin/activities/metrics').then(async res => {
+                        if (!res.ok) {
+                            const body = await res.text().catch(() => '');
+                            throw new Error(`Metrics: ${res.status} ${body}`);
+                        }
+                        return res.json();
+                    }),
+                ]);
 
-                // Fetch analytics
-                const analyticsRes = await fetch('/api/admin/analytics?days=30');
-                if (!analyticsRes.ok) throw new Error('Failed to fetch analytics');
-                const analyticsData = await analyticsRes.json();
-                setAnalytics(analyticsData);
+                if (statsResult.status === 'fulfilled') {
+                    setStats(statsResult.value);
+                } else {
+                    console.error('Failed to fetch stats:', statsResult.reason);
+                }
 
-                // Fetch activity metrics
-                const metricsRes = await fetch('/api/admin/activities/metrics');
-                if (metricsRes.ok) {
-                    const metricsData = await metricsRes.json();
-                    setActivityMetrics(metricsData);
+                if (analyticsResult.status === 'fulfilled') {
+                    setAnalytics(analyticsResult.value);
+                } else {
+                    console.error('Failed to fetch analytics:', analyticsResult.reason);
+                }
+
+                if (metricsResult.status === 'fulfilled') {
+                    setActivityMetrics(metricsResult.value);
+                } else {
+                    console.error('Failed to fetch metrics:', metricsResult.reason);
+                }
+
+                // Only show error if ALL requests failed
+                if (
+                    statsResult.status === 'rejected' &&
+                    analyticsResult.status === 'rejected' &&
+                    metricsResult.status === 'rejected'
+                ) {
+                    setError('Failed to load dashboard data. Please try again.');
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load dashboard');
@@ -211,24 +244,24 @@ function formatGameTime(seconds: number): string {
     if (seconds < 60) {
         return `${seconds}s`;
     }
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
-    
+
     if (hours > 0) {
         if (minutes > 0) {
             return `${hours}h ${minutes}m`;
         }
         return `${hours}h`;
     }
-    
+
     if (minutes > 0) {
         if (remainingSeconds > 0) {
             return `${minutes}m ${remainingSeconds}s`;
         }
         return `${minutes}m`;
     }
-    
+
     return `${remainingSeconds}s`;
 }
