@@ -59,8 +59,21 @@ export async function GET(request: NextRequest) {
         }
 
         if (search) {
-            // Search in activity_type or activity_details
-            query = query.or(`activity_type.ilike.%${search}%,activity_details::text.ilike.%${search}%`);
+            // First, find user IDs matching the search term by name or email
+            const { data: matchingProfiles } = await supabase
+                .from('profiles')
+                .select('id')
+                .or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+
+            const matchingUserIds = (matchingProfiles || []).map((p: any) => p.id);
+
+            if (matchingUserIds.length > 0) {
+                // Search activity_type OR matching user IDs
+                query = query.or(`activity_type.ilike.%${search}%,user_id.in.(${matchingUserIds.join(',')})`);
+            } else {
+                // No matching users, only search activity_type
+                query = query.ilike('activity_type', `%${search}%`);
+            }
         }
 
         // Get total count and data
